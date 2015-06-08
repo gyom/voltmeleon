@@ -1,4 +1,8 @@
 
+# TODO : import the needed modules
+
+# TODO : Before going here, you should to implement build_model.build_submodel properly.
+
 def build_training( cg, error_rate, cost, step_rule,
                     dataset_hdf5_file=None,
                     batch_size=256, dropout_bis=None, nbr_epochs=1, saving_path=None,
@@ -104,6 +108,8 @@ def build_training( cg, error_rate, cost, step_rule,
     main_loop = MainLoop(data_stream=data_stream,
                         algorithm=algorithm, model = Model(cost),
                         extensions=extensions)
-    main_loop.run()
+
+    # TODO : maybe we'll return other things that make sense to have
+    return main_loop
 
 

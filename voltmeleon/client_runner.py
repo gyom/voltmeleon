@@ -16,14 +16,14 @@ import numpy as np
 ####################################################
 
 
-
-
-sys.path.append("../../client")
+#sys.path.append("../../client")
 #import client_api
 from client_api import ClientCNNAutoSplitter
 
 
 from server_update_extensions import ServerSyncAutoAdjustTiming
+
+import build_model
 
 from architecture import (init_param, build_training, return_param, build_architecture)
 
@@ -38,7 +38,8 @@ def run_training(   batch_size, step_flavor,
                     sync_desc):
 
 
-    # TODO : start a client here based on `server_desc` if there is anything available
+    # TODO : This will not be how the dropout is handled.
+    #        Refer to config_examples/experiment_01/model_desc.json.
 
     D_dropout_probs = {'layer_0' : [integral_drop_rate, 0.0],
                        'layer_1' : [integral_drop_rate, integral_drop_rate],
@@ -64,19 +65,17 @@ def run_training(   batch_size, step_flavor,
                           'layer_6' : flecked_drop_rate,
                           'layer_7' : flecked_drop_rate}
 
+    # TODO : Figure out what the prototype for this function should be.
+    cg, error_rate, cost, names, D_params = build_model.build_submodel(drop_conv=drop_conv,
+                                                                       drop_mlp=drop_mlp,
+                                                                       L_nbr_filters=L_nbr_filters,
+                                                                       L_nbr_hidden_units=L_nbr_hidden_units,
+                                                                       weight_decay_factor=weight_decay_factor,
+                                                                       dataset_hdf5_file=dataset_hdf5_file)
 
-    cg, error_rate, cost, step_rule, names, params_dict, diagnostic_output = build_architecture(step_flavor=step_flavor,
-                                                                                                drop_conv=drop_conv,
-                                                                                                drop_mlp=drop_mlp,
-                                                                                                L_nbr_filters=L_nbr_filters,
-                                                                                                L_nbr_hidden_units=L_nbr_hidden_units,
-                                                                                                weight_decay_factor=weight_decay_factor,
-                                                                                                dataset_hdf5_file=dataset_hdf5_file)
+    (step_rule, D_additional_params) = build_step_rule_parameters(step_flavor, D_params)
 
-    #print "params_dict"
-    #print params_dict
-    #print "names"
-    #print names
+    D_params = dict(D_params.items() + D_additional_params.items())
 
     client = None
     if server_desc is not None:
@@ -105,7 +104,7 @@ def run_training(   batch_size, step_flavor,
         #client.perform_split(D_dropout_probs)
         #for name in names:
         #    param_value = client.pull_split_param(name)
-        #    init_param(params_dict, name, param_value)
+        #    set_param_value_shared_var(D_params, name, param_value)
     
     
     for key in sync_desc:
@@ -138,7 +137,7 @@ def run_training(   batch_size, step_flavor,
 
     checkpoint_interval_nbr_batches = 100
     # this launches the main loop internally
-    build_training(cg, error_rate, cost, step_rule,
+    main_loop = build_training(cg, error_rate, cost, step_rule,
         batch_size=batch_size, dropout_bis = D_dropout_mouchete,
         dataset_hdf5_file=dataset_hdf5_file,
         checkpoint_interval_nbr_batches=checkpoint_interval_nbr_batches,
@@ -148,4 +147,4 @@ def run_training(   batch_size, step_flavor,
         server_sync_extension=server_sync_extension_auto_timing,
         server_sync_initial_read_extension=server_sync_initial_read_extension)
 
-
+    main_loop.run()

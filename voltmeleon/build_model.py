@@ -40,25 +40,6 @@ import momentum
 import os
 import time
 
-def init_param(params, name, value):
-
-    if name in params:
-        param_i = params[name]
-        shape = param_i.get_value().shape
-        #print (name, shape, value.shape)
-        param_i.set_value((value.reshape(shape)).astype(floatX))
-    else:
-        raise Exception("unknown parameter")
-
-
-def return_param(params, name):
-    #if name in momentum :
-    #    return momentum[name].get_value()
-    #else :
-    if name in params:
-        return params[name].get_value()
-    else:
-        raise Exception("unknown parameter")
 
 
 def errors(p_y_given_x, y):
@@ -120,7 +101,7 @@ def build_params(input, x, cnn_layer, mlp_layer):
 
 
         
-def build_architecture( step_flavor,
+def build_submodel(
                         drop_conv, drop_mlp,
                         L_nbr_filters, L_nbr_hidden_units,
                         weight_decay_factor=0.0,
@@ -304,18 +285,9 @@ def build_architecture( step_flavor,
     cost.name = 'cost'
     cg = ComputationGraph(cost)
 
-    #DEBUG : amplitude de la sortie
-    #tmp = Flattener().apply(convnet.apply(x))
-    #output_test_0 = mlp_layer0.apply(tmp)
-    #output_test_1 = mlp_layer1.apply(output_test_0)
-    #output_test_2 = mlp_layer2.apply(output_test_1)
-    #output_test_3 = mlp_layer3.apply(output_test_2)
-    diagnostic_output = output_full[0,:]
-    diagnostic_output.name = "diagnostic_output"
-
 
     # put names
-    params, names = build_params(x, T.matrix(), conv_layers, mlp_layer)
+    L_params, names = build_params(x, T.matrix(), conv_layers, mlp_layer)
     # test computation graph
     error_rate_brick = MisclassificationRate()
     error_rate = error_rate_brick.apply(y.flatten(), output_full)
@@ -326,11 +298,20 @@ def build_architecture( step_flavor,
     
 
     print "params right out of blocks"
-    print params
-    for p in params:
+    print L_params
+    for p in L_params:
         print "%s" % p.name
         print p.get_value().shape
 
+    D_params = {}
+    for param in L_params:
+        D_params[param.name] = param
+    ####################
+    
+    return (cg, error_rate, cost, names, D_params)
+
+
+def build_step_rule_parameters(step_flavor, D_params):
 
 
     if step_flavor['method'].lower() == "rmsprop":
@@ -338,8 +319,9 @@ def build_architecture( step_flavor,
         assert 0.0 <= step_flavor['decay_rate']
         assert step_flavor['decay_rate'] <= 1.0
 
+        # TODO : change momentum.RMSProp to take D_params instead of L_params
         step_rule = momentum.RMSProp(learning_rate=step_flavor['learning_rate'],
-                            decay_rate=step_flavor['decay_rate'], params=params)
+                            decay_rate=step_flavor['decay_rate'], params=D_params)
 
         #step_rule = RMSProp(learning_rate=step_flavor['learning_rate'],
         #                    decay_rate=step_flavor['decay_rate'])
@@ -375,19 +357,25 @@ def build_architecture( step_flavor,
     else:
         raise Error("Unrecognized step flavor method : " + step_flavor['method'])
 
+    L_additional_params = step_rule.velocities
+    return (step_rule, L_additional_params)
 
 
-    # TODO : After you fix the whole velocities thing, you need to
-    #        add the stuff here so that we keep track of them also.
 
-    ## DEBUG : The role of this part of the code is questioned.
-    dict_params = step_rule.velocities
-    #dict_params = {}
-    for param_m in dict_params :
-        print param_m
-        names.append(param_m)
-    for param in params:
-        dict_params[param.name] = param
-    ####################
-    
-    return (cg, error_rate, cost, step_rule, names, dict_params, diagnostic_output)
+
+def get_model_desc_for_server(D_params):
+
+    """
+    Takes a dictionary of the parameters (shared variables) and generates a JSON structure
+    like model_params_desc.json to be used by the server executable.
+
+    Note that this function generates a structures and the act of saving it
+    as a json file is going to be done elsewhere.
+    """
+
+    # TODO 
+
+    pass
+
+
+

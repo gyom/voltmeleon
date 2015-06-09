@@ -1,62 +1,56 @@
-# Image net architecture
+import os
+import time
 import numpy as np
 import theano
 import theano.tensor as T
-from blocks.bricks import Rectifier, Softmax, MLP, Identity
+from blocks.bricks import Rectifier, Tanh, Sigmoid, Softmax, MLP, Linear
 from blocks.initialization import Constant
-from blocks.algorithms import GradientDescent
 from blocks.roles import WEIGHT, BIAS, INPUT
 from blocks.graph import ComputationGraph, apply_dropout
 from blocks.filter import VariableFilter
-from blocks.extensions import FinishAfter, Printing
-from blocks.extensions.monitoring import DataStreamMonitoring
-from blocks.extensions.saveload import Dump
-from blocks.extensions.training import SharedVariableModifier
-from blocks.model import Model
-from fuel.streams import DataStream
-from fuel.schemes import SequentialScheme, ShuffledScheme
-from blocks.main_loop import MainLoop
-import operator
-from blocks.roles import PARAMETER
-#from batch_normalize import ConvolutionalLayer, ConvolutionalActivation, Linear
-# change for cpu tests
-from blocks.bricks.conv import ConvolutionalLayer, ConvolutionalSequence
-from blocks.bricks.conv import MaxPooling, ConvolutionalActivation, Flattener
-from blocks.bricks import Linear
-
-from blocks.bricks.cost import MisclassificationRate, CategoricalCrossEntropy
-from blocks.algorithms import Momentum, RMSProp, AdaDelta, AdaGrad, Adam
-from fuel.datasets.hdf5 import H5PYDataset
-from fuel.transformers import Flatten
-from blocks.utils import shared_floatx
-
-floatX = theano.config.floatX
+from blocks.bricks.conv import ConvolutionalLayer, ConvolutionalSequence, ConvolutionalActivation
+from blocks.bricks.cost import MisclassificationRate
 import h5py
 from contextlib import closing
 
 #from momentum import Momentum_dict
-import momentum
-
-import os
-import time
+import modified_blocks_algorithms as optimisation_rule
+floatX = theano.config.floatX
 
 
 def build_params(input, x, cnn_layer, mlp_layer):
 
     D_params = {}
+    D_kind = {}
     for i, layer in zip(range(len(cnn_layer)), cnn_layer):
         param_layer = VariableFilter(roles=[WEIGHT, BIAS])(ComputationGraph(layer.apply(input).sum()).variables)
         for p in param_layer:
+            if p.name =="W":
+                kind = "WEIGHTS"
+            elif p.name =="b":
+                kind = "BIASES":
+            else
+                raise Exception("unhandled type of parameters : "
+                                "build_params expects only weights or biases (W,b) but received %s", p.name)
             p.name = "layer_"+str(i)+"_"+p.name
-            D_params[p.name] = p  
+            D_params[p.name] = p
+            D_kind[p.name] = "CONV_FILTER_"+kind
 
     for i, layer in zip(range(len(mlp_layer)), mlp_layer):
         param_layer= VariableFilter(roles=[WEIGHT, BIAS])(ComputationGraph(layer.apply(x).sum()).variables)
         for p in param_layer:
+            if p.name =="W":
+                kind = "WEIGHTS"
+            elif p.name =="b":
+                kind = "BIASES":
+            else
+                raise Exception("unhandled type of parameters : "
+                                "build_params expects only weights or biases (W,b) but received %s", p.name)
             p.name = "layer_"+str(i+len(cnn_layer))+"_"+p.name
             D_params[p.name] = p
+            D_kind[p.name] = "FULLY_CONNECTED_"+kind
 
-    return D_params
+    return D_params, D_kind
 
 
 def build_submodel(input_shape,
@@ -204,7 +198,7 @@ def build_submodel(input_shape,
     error_rate.name = "error_rate"
 
     # put names
-    D_params = build_params(x, T.matrix(), conv_layers, full_layers)
+    D_params, D_kind = build_params(x, T.matrix(), conv_layers, full_layers)
     # test computation graph
     
 
@@ -227,7 +221,7 @@ def build_submodel(input_shape,
     cg = cg_dropout
 
 
-    return (cg, error_rate, cost, D_params)
+    return (cg, error_rate, cost, D_params, D_kind)
 
 
 def build_submodel_old(drop_conv, drop_mlp,
@@ -436,7 +430,7 @@ def build_submodel_old(drop_conv, drop_mlp,
         print "%s" % p.name
         print p.get_value().shape
 
-    D_params = {}
+    D_params D_kind = {}
     for param in L_params:
         D_params[param.name] = param
     ####################
@@ -444,21 +438,20 @@ def build_submodel_old(drop_conv, drop_mlp,
     return (cg, error_rate, cost, names, D_params)
 
 
-def build_step_rule_parameters(step_flavor, D_params):
+def build_step_rule_parameters(step_flavor, D_params, D_kind, weight_decay_factor=0.0):
 
-
+    # TO DO
     if step_flavor['method'].lower() == "rmsprop":
         assert 0.0 <= step_flavor['learning_rate']
         assert 0.0 <= step_flavor['decay_rate']
         assert step_flavor['decay_rate'] <= 1.0
 
         # TODO : change momentum.RMSProp to take D_params instead of L_params
-        step_rule = momentum.RMSProp(learning_rate=step_flavor['learning_rate'],
-                            decay_rate=step_flavor['decay_rate'], params=D_params)
+        step_rule = optimisation_rule.RMSProp(learning_rate=step_flavor['learning_rate'],
+                            decay_rate=step_flavor['decay_rate'], D_params=D_params, D_kind = D_kind)
 
-        #step_rule = RMSProp(learning_rate=step_flavor['learning_rate'],
-        #                    decay_rate=step_flavor['decay_rate'])
-
+    # TO DO : implement this method
+    """
     elif step_flavor['method'].lower() == "adadelta":
         # maybe this should be a composite rule with a learning rate also
         assert 0.0 <= step_flavor['decay_rate']
@@ -475,28 +468,27 @@ def build_step_rule_parameters(step_flavor, D_params):
                 optional[key] = step_flavor[key]
 
         step_rule = Adam(learning_rate=step_flavor['learning_rate'], **optional)
-
+    """
     elif step_flavor['method'].lower() == "momentum":
         assert 0.0 <= step_flavor['learning_rate']
         assert 0.0 <= step_flavor['momentum']
         assert step_flavor['momentum'] <= 1.0
 
-        step_rule = Momentum(   learning_rate=step_flavor['learning_rate'],
-                                momentum=step_flavor['momentum'])
-
-        #step_rule = momentum.Momentum_dict( learning_rate=step_flavor['learning_rate'],
-        #                                    momentum=step_flavor['momentum'])
-
+        step_rule = optimisation_rule.Momentum(   learning_rate=step_flavor['learning_rate'],
+                                momentum=step_flavor['momentum'],
+                                D_params=D_params,
+                                D_kind = D_kind)
     else:
         raise Error("Unrecognized step flavor method : " + step_flavor['method'])
 
     L_additional_params = step_rule.velocities
-    return (step_rule, L_additional_params)
+    L_additional_kind = setp_rule.D_kind
+    return (step_rule, L_additional_params, L_additional_kind)
 
 
 
 
-def get_model_desc_for_server(D_params):
+def get_model_desc_for_server(D_params, D_kind):
 
     """
     Takes a dictionary of the parameters (shared variables) and generates a JSON structure
@@ -506,9 +498,32 @@ def get_model_desc_for_server(D_params):
     as a json file is going to be done elsewhere.
     """
 
-    # TODO 
+    # TODO : know CONV or FULLY CONNECTED layer
+    # it will help to do the reshape too
+    server_dict=[]
 
-    pass
+    for param in D_params:
+        param_dict={}
+        param_dict["name"] = param.name
+        param_dict["kind"] = D_kind[param.name]
+        # voir les tailles pour les reshape
+        if D_kind[param.name]=="CONV_FILTER_WEIGHTS":
+            params_dict["shape"] = list(param.get_value().shape)
+        elif D_kind[param.name]=="CONV_FILTER_BIASES":
+            params_dict["shape"] = [1] + list(param.get_value().shape)
+        elif D_kind[param.name]=="FULLY_CONNECTED_WEIGHTS":
+            params_dict["shape"] = list(param.get_value().shape) + [1, 1]
+        elif D_kind[param.name]=="FULLY_CONNECTED_BIASES":
+            params_dict["shape"] = [1] + list(param.get_value().shape) + [1, 1]
+        else:
+            raise Exception("unknow kind of parameters : %s for param %s",
+                            D_kind[param.name],
+                            param.name)
+
+        assert len(params_dict["shape"])==4
+        server_dict.append(params_dict)
+
+    return server_dict
 
 
 

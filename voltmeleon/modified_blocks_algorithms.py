@@ -30,7 +30,7 @@ class BasicRMSProp(StepRule):
     with :class:`Scale`.
     For more information, see [Hint2014]_.
     """
-    def __init__(self, decay_rate=0.9, max_scaling=1e5, params=None):
+    def __init__(self, decay_rate=0.9, max_scaling=1e5, D_params=None, D_kind=None):
         if not 0.0 <= decay_rate <= 1.0:
             raise ValueError("decay rate needs to be in [0, 1]")
         if max_scaling <= 0:
@@ -38,10 +38,13 @@ class BasicRMSProp(StepRule):
         self.decay_rate = shared_floatx(decay_rate)
         self.epsilon = 1. / max_scaling
         self.velocities = OrderedDict()
-        for param_i in params:
+        self.D_kind = {}
+        for p_name in D_params:
+            param_i = D_params[p_name]
             velocity = shared_floatx(param_i.get_value() * 0.)
-            velocity.name = param_i.name+ "_momentum"
+            velocity.name = p_name+ "_decay"
             self.velocities[velocity.name] = velocity
+            self.D_kind[velocity.name] = D_kind[p_name]
 
 
     def compute_step(self, param, previous_step):
@@ -87,15 +90,17 @@ class RMSProp(CompositeRule):
     --------
     :class:`SharedVariableModifier`
     """
-    def __init__(self, learning_rate=1.0, decay_rate=0.9, max_scaling=1e5, params=None):
+    def __init__(self, learning_rate=1.0, decay_rate=0.9, max_scaling=1e5, D_params=None, D_kind=None):
         basic_rms_prop = BasicRMSProp(decay_rate=decay_rate,
                                       max_scaling=max_scaling,
-                                      params=params)
+                                      D_params=D_params,
+                                      D_kind=D_kind)
         scale = Scale(learning_rate=learning_rate)
         self.learning_rate = scale.learning_rate
         self.decay_rate = basic_rms_prop.decay_rate
         self.components = [basic_rms_prop, scale]
         self.velocities = basic_rms_prop.velocities
+        self.D_kind = basic_rms_prop.D_kind
 
 
 class BasicMomentum_dict(StepRule):
@@ -112,14 +117,17 @@ class BasicMomentum_dict(StepRule):
     step rule, _e.g._ :class:`Scale`. For an all-batteries-included
     experience, look at :class:`Momentum`.
     """
-    def __init__(self, params=None, momentum=0.):
+    def __init__(self, D_params=None, D_kind = None, momentum=0.):
         self.momentum = shared_floatx(momentum)
         # dictionary of velocities
         self.velocities = OrderedDict()
-        for param_i in params:
+        self.D_kind = {}
+        for p_name in D_params:
+            param_i = D_params[p_name]
             velocity = shared_floatx(param_i.get_value() * 0.)
-            velocity.name = param_i.name+ "_momentum"
+            velocity.name = p_name+ "_momentum"
             self.velocities[velocity.name] = velocity
+            self.D_kind[velocity.name] = D_kind[p_name]
 
     def compute_step(self, param, previous_step):
         if param.name+"_momentum" in self.velocities:
@@ -152,10 +160,11 @@ class Momentum_dict(CompositeRule):
     --------
     :class:`SharedVariableModifier`
     """
-    def __init__(self, learning_rate=1.0, momentum=0., params=None):
+    def __init__(self, learning_rate=1.0, momentum=0., D_params=None, D_kind=None):
         scale = Scale(learning_rate=learning_rate)
-        basic_momentum = BasicMomentum_dict(momentum=momentum, params=params)
+        basic_momentum = BasicMomentum_dict(momentum=momentum, D_params=D_params, D_kind=D_kind)
         self.learning_rate = scale.learning_rate
         self.momentum = basic_momentum.momentum
         self.components = [scale, basic_momentum]
         self.velocities = basic_momentum.velocities
+        self.D_kind = basic_momentum.D_kind

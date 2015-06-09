@@ -3,7 +3,7 @@ import numpy as np
 import theano
 import theano.tensor as T
 from blocks.bricks import Rectifier, Softmax, MLP, Identity
-from blocks.initialization import Constant, Uniform, IsotropicGaussian
+from blocks.initialization import Constant
 from blocks.algorithms import GradientDescent
 from blocks.roles import WEIGHT, BIAS, INPUT
 from blocks.graph import ComputationGraph, apply_dropout
@@ -41,82 +41,214 @@ import os
 import time
 
 
-
-def errors(p_y_given_x, y):
-    """Return a float representing the number of errors in the minibatch
-    over the total number of examples of the minibatch ; zero one
-    loss over the size of the minibatch
-
-    :type y: theano.tensor.TensorType
-    :param y: corresponds to a vector that gives for each example the
-    correct label
-    """
-    y = T.cast(y, 'int8')
-    y_pred = T.argmax(p_y_given_x, axis=1)
-    y_pred = y_pred.dimshuffle((0, 'x'))
-    y_pred = T.cast(y_pred, 'int8')
-    # check if y has same dimension of y_pred
-    if y.ndim != y_pred.ndim:
-        raise TypeError(
-            'y should have the same shape as self.y_pred',
-            ('y', y.type, 'y_pred', y_pred.type)
-        )
-    # check if y is of the correct datatype
-    if y.dtype.startswith('int'):
-        # the T.neq operator returns a vector of 0s and 1s, where 1
-        # represents a mistake in prediction
-        return T.mean(T.neq(y_pred, y), dtype=floatX)
-    else:
-        raise NotImplementedError()
-
-
 def build_params(input, x, cnn_layer, mlp_layer):
 
-    params = []
-    names = []
+    D_params = {}
     for i, layer in zip(range(len(cnn_layer)), cnn_layer):
         param_layer = VariableFilter(roles=[WEIGHT, BIAS])(ComputationGraph(layer.apply(input).sum()).variables)
         for p in param_layer:
             p.name = "layer_"+str(i)+"_"+p.name
-            names.append(p.name)
-            params.append(p)
-            print (p.name, p.get_value().shape)
-        # do the same for the input -> easier for the second level of dropout
-        #param_layer = VariableFilter(roles=[INPUT])(ComputationGraph(layer.apply(input).sum()).variables)
-        #for p in param_layer:
-        #    p.name = "layer_"+str(i)+"_input"     
+            D_params[p.name] = p  
 
     for i, layer in zip(range(len(mlp_layer)), mlp_layer):
         param_layer= VariableFilter(roles=[WEIGHT, BIAS])(ComputationGraph(layer.apply(x).sum()).variables)
         for p in param_layer:
             p.name = "layer_"+str(i+len(cnn_layer))+"_"+p.name
-            names.append(p.name)
-            params.append(p)
-            print (p.name, p.get_value().shape)
-        #param_layer= VariableFilter(roles=[INPUT])(ComputationGraph(layer.apply(x).sum()).variables)
-        #for p in param_layer:
-        #    p.name = "layer_"+str(i+len(cnn_layer))+"_input"
+            D_params[p.name] = p
 
-    return params, names
+    return D_params
 
 
+def build_submodel(input_shape,
+                   output_dim,
+                   L_dim_conv_layers,
+                   L_filter_size,
+                   L_pool_size,
+                   activation_conv,
+                   L_dim_full_layers,
+                   activation_full,
+                   L_exo_dropout_conv_layers,
+                   L_exo_dropout_full_layers,
+                   L_endo_dropout_conv_layers,
+                   L_endo_dropout_full_layers):
+
+    # TO DO : target size and name of the features
+    # TO DO : border_mode
+
+    x = T.tensor4('x')
+    y = T.imatrix('y')
+
+    assert len(input_shape) == 3, "input_shape must be a 3d tensor"
+
+    num_channels = input_shape[0]
+    image_size = input_shape[1:]
+    prediction = output_dim
+
+    # CONVOLUTION
+    output_conv = x
+    output_dim = num_channels*np.prod(image_size)
+    conv_layers = []
+    assert len(L_dim_conv_layers) == len(L_filter_size)
+    assert len(L_dim_conv_layers) == len(L_pool_size)
+    assert len(L_dim_conv_layers) == len(activation_conv)
+    assert len(L_dim_conv_layers) == len(L_endo_dropout_conv_layers)
+    assert len(L_dim_conv_layers) == len(L_exo_dropout_conv_layers)
+    if len(L_dim_conv_layers):
+        for num_filters, filter_size,
+            pool_size, activation_str,
+            dropout, index in zip(L_dim_conv_layers,
+                                  L_filter_size,
+                                  L_pool_size,
+                                  activation_conv,
+                                  L_exo_dropout_conv_layers,
+                                  xrange(len(L_dim_conv_layers))
+                                  )
+
+            # TO DO : leaky relu
+            if activation_str.lower() == 'rectifier':
+                activation = Rectifier()
+            elif activation_str.lower() == 'tanh':
+                activation = Tanh()
+            elif activation_str.lower() == 'sigmoid':
+                activation = Sigmoid()
+            else
+                raise Exception("unknown activation function : %s", activation_str)
+
+            assert dropout >= 0. and dropout < 1.
+            num_filters = num_filters - int(num_filters*dropout)
+
+            if pool_size[0] == 0 and pool_size[1] == 0:
+                layer_conv = ConvolutionalActivation(activation=activation,
+                                                filter_size=filter_size,
+                                                num_filters=num_filters,
+                                                name="layer_"+str(index))
+            else
+                layer_conv = ConvolutionalLayer(activation=activation,
+                                                filter_size=filter_size,
+                                                num_filters=num_filters,
+                                                pooling_size=poolin_size,
+                                                name="layer_"+str(index))
+
+            conv_layers.append(layer_conv)
+    
+        convnet = ConvolutionalSequence(conv_layers, num_channels=num_channels,
+                                    image_size=image_size,
+                                    weights_init=Constant(0.),
+                                    biases_init=Constant(0.))
+        convnet.initialize()
+        output_dim = np.prod(convnet.get_dim('output'))
+        output_conv = convnet.apply(output_conv)
+
+
+    output_conv = Flattener().apply(output_conv)
+
+    # FULLY CONNECTED
+    output_mlp = output_conv
+    full_layers = []
+    assert len(L_dim_full_layers) == len(activation_full)
+    assert len(L_dim_full_layers) == len(L_endo_dropout_full_layers)
+    assert len(L_dim_full_layers) == len(L_exo_dropout_full_layers)
+
+    if len(L_dim_full_layers):
+        for dim, activation_str,
+            dropout, index in zip(L_dim_full_layers,
+                                  activation_full,
+                                  L_exo_dropout_full_layers
+                                  range(len(L_dim_conv_layers),
+                                             len(L_dim_conv_layers)+ 
+                                             len(L_dim_full_layers))
+                                         ):
+                                          
+                # TO DO : leaky relu
+                if activation_str.lower() == 'rectifier':
+                    activation = Rectifier()
+                elif activation_str.lower() == 'tanh':
+                    activation = Tanh()
+                elif activation_str.lower() == '=sigmoid':
+                    activation = Sigmoid()
+                else
+                    raise Exception("unknown activation function : %s", activation_str)
+
+                assert dropout >= 0. and dropout < 1.
+                dim = dim - int(dim*dropout)
+
+                layer_full = MLP(activations=[activation], dims=[dim],
+                                weights_init=Constant(0.),
+                                biases_init=Constant(0.),
+                                name="layer_"+str(index))
+                layer_full.initialize()
+                full_layers.append(layer_full)
+
+        for layer in full_layers:
+            output_mlp = layer.apply(output_mlp)
+
+        output_dim = L_dim_full_layers[-1] - int(L_dim_full_layers[-1]*L_exo_dropout_full_layers[-1])
+
+    # COST FUNCTION
+    output_layer = Linear(output_dim, prediction,
+                          weights_init=Constant(0.),
+                          biases_init=Constant(0.),
+                          name="layer_"+str(len(L_dim_conv_layers)+ 
+                                            len(L_dim_full_layers))
+                          )
+    output_layer.initialize()
+    y_pred = output_layer.apply(output_mlp)
+    y_hat = Softmax().apply(y_pred)
+    # SOFTMAX and log likelihood
+    cost = Softmax().categorical_cross_entropy(y.flatten(), y_pred)
+    cost.name = "cost"
+
+    # Misclassification
+    error_rate_brick = MisclassificationRate()
+    error_rate = error_rate_brick.apply(y.flatten(), y_hat)
+    error_rate.name = "error_rate"
+
+    # put names
+    D_params = build_params(x, T.matrix(), conv_layers, full_layers)
+    # test computation graph
+    
+
+    # TO DO : weight decay factor in the second json file !!!
+
+    cg = ComputationGraph(cost)
+    # DROPOUT
+    L_endo_dropout = L_endo_dropout_conv_layers +
+                     L_endo_dropout_full_layers
+
+    cg_dropout = cg
+    inputs = VariableFilter(roles=[INPUT])(cg.variables)
+    for drop_rate, index in zip(L_endo_dropout, range(len(L_endo_dropout))):
         
-def build_submodel(
-                        drop_conv, drop_mlp,
-                        L_nbr_filters, L_nbr_hidden_units,
-                        weight_decay_factor=0.0,
-                        dataset_hdf5_file=None):
+        for input_ in inputs:
+            if re.match("layer_"+str(index)+"_apply_input_", input_):
+                cg_dropout = apply_dropout(cg, [input_], drop_rate)
+                break
+
+    cg = cg_dropout
+
+
+    return (cg, error_rate, cost, D_params)
+
+
+def build_submodel_old(drop_conv, drop_mlp,
+                   L_nbr_filters, L_nbr_hidden_units,
+                   weight_decay_factor=0.0):
 
     # dataset_hdf5_file is like "/rap/jvb-000-aa/data/ImageNet_ILSVRC2010/pylearn2_h5/imagenet_2010_train.h5"
 
-    assert len(L_nbr_filters) == 4
-    assert len(L_nbr_hidden_units) == 4
+    # We can change the architecture now
+    # assert len(L_nbr_filters) == 4
+    # assert len(L_nbr_hidden_units) == 4
+
+
     # Note that L_nb_hidden_units[0] is something constrained
     # by the junction between the filters and the fully-connected section.
     # Find this value in the JSON file that describes the model.
 
     x=T.tensor4('x')
     
+    # preprocessing should be applied in the hdf5 file
+    """
     if dataset_hdf5_file is not None:
         with closing(h5py.File(dataset_hdf5_file, 'r')) as f:
             x_mean = (f['x_mean']).value
@@ -125,7 +257,8 @@ def build_submodel(
         # TODO : maybe normalize ?
     
     y = T.imatrix('y')
-    
+    """
+
     num_channels = 3
     filter_size = (3, 3)
     activation = Identity().apply

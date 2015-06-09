@@ -21,13 +21,75 @@ import numpy as np
 from client_api import ClientCNNAutoSplitter
 
 
-from server_update_extensions import ServerSyncAutoAdjustTiming
+from server_sync_extensions import ServerSyncAutoAdjustTiming
 
 import build_model
+import build_training
 
-from architecture import (init_param, build_training, return_param, build_architecture)
 
-def run_training(   batch_size, step_flavor,
+"""
+
+ef build_submodel(input_shape,
+                   output_dim,
+                   L_dim_conv_layers,
+                   L_filter_size,
+                   L_pool_size,
+                   L_activation_conv,
+                   L_dim_full_layers,
+                   L_activation_full,
+                   L_exo_dropout_conv_layers,
+                   L_exo_dropout_full_layers,
+                   L_endo_dropout_conv_layers,
+                   L_endo_dropout_full_layers):
+
+
+
+
+
+    #learning_rate = experiment_desc['learning_rate']
+    #momentum = experiment_desc['momentum']
+    step_flavor = experiment_desc['step_flavor']    
+    integral_drop_rate = experiment_desc['integral_drop_rate']
+    flecked_drop_rate = experiment_desc['flecked_drop_rate']
+    L_nbr_filters = experiment_desc['L_nbr_filters']
+    L_nbr_hidden_units = experiment_desc['L_nbr_hidden_units']
+    weight_decay_factor = experiment_desc['weight_decay_factor'] if experiment_desc.has_key('weight_decay_factor') else 0.0
+    dataset_hdf5_file = experiment_desc['dataset_hdf5_file']
+
+    # TODO : Figure out what to do with `saving_path`.
+    # "saving_path" : "/home/dpln/NIPS/experiments/debug",
+    saving_path = experiment_desc['saving_path']
+
+    server_desc = experiment_desc['server'] if experiment_desc.has_key('server') else None
+    sync_desc = experiment_desc['sync'] if experiment_desc.has_key('sync') else None
+
+
+    optional_args = {}
+    for key in ['nbr_epochs']:
+        if experiment_desc.has_key(key):
+            optional_args[key] = experiment_desc[key]
+
+    assert 1 <= batch_size
+    assert os.path.exists(dataset_hdf5_file)
+
+    print "L_nbr_filters : " + str(L_nbr_filters) 
+    print "L_nbr_hidden_units : " + str(L_nbr_hidden_units) 
+
+    run_training(   batch_size, step_flavor,
+                    integral_drop_rate, flecked_drop_rate,
+                    L_nbr_filters, L_nbr_hidden_units,
+                    weight_decay_factor=weight_decay_factor,
+                    dataset_hdf5_file=dataset_hdf5_file,
+                    saving_path=saving_path,
+                    server_desc=server_desc,
+                    sync_desc=sync_desc,
+                    **optional_args)
+
+
+batch_size = train_desc['batch_size']
+
+
+   batch_size, step_flavor,
                     integral_drop_rate, flecked_drop_rate,
                     L_nbr_filters, L_nbr_hidden_units,
                     weight_decay_factor,
@@ -37,46 +99,27 @@ def run_training(   batch_size, step_flavor,
                     server_desc,
                     sync_desc):
 
+"""
 
-    # TODO : This will not be how the dropout is handled.
-    #        Refer to config_examples/experiment_01/model_desc.json.
 
-    D_dropout_probs = {'layer_0' : [integral_drop_rate, 0.0],
-                       'layer_1' : [integral_drop_rate, integral_drop_rate],
-                       'layer_2' : [integral_drop_rate, integral_drop_rate],
-                       'layer_3' : [integral_drop_rate, integral_drop_rate],
-                       'layer_4' : [integral_drop_rate, integral_drop_rate],
-                       'layer_5' : [integral_drop_rate, integral_drop_rate],
-                       'layer_6' : [integral_drop_rate, integral_drop_rate],
-                       'layer_7' : [integral_drop_rate, 0.0]}
+def run(model_desc, train_desc, experiment_dir, saving_path):
 
-    drop_conv = [integral_drop_rate] * 4
-    drop_mlp = [integral_drop_rate] * 4
-    
-    # note that these rates are applied on inputs,
-    # hence the fact that the final value is not
-    # required to be 0.0    
-    D_dropout_mouchete = {'layer_0' : 0.0,
-                          'layer_1' : flecked_drop_rate,
-                          'layer_2' : flecked_drop_rate,
-                          'layer_3' : flecked_drop_rate,
-                          'layer_4' : flecked_drop_rate,
-                          'layer_5' : flecked_drop_rate,
-                          'layer_6' : flecked_drop_rate,
-                          'layer_7' : flecked_drop_rate}
+    # it's okay to not use the `experiment_dir` argument directly, for now
 
-    # TODO : Figure out what the prototype for this function should be.
-    cg, error_rate, cost, names, D_params = build_model.build_submodel(drop_conv=drop_conv,
-                                                                       drop_mlp=drop_mlp,
-                                                                       L_nbr_filters=L_nbr_filters,
-                                                                       L_nbr_hidden_units=L_nbr_hidden_units,
-                                                                       weight_decay_factor=weight_decay_factor,
-                                                                       dataset_hdf5_file=dataset_hdf5_file)
+    (cg, error_rate, cost, D_params, D_kind) = build_model.build_submodel(**model_desc)
 
-    (step_rule, D_additional_params) = build_step_rule_parameters(step_flavor, D_params)
 
+
+    build_model.build_step_rule_parameters(step_flavor, D_params, D_kind)
+
+    (step_rule, D_additional_params, D_additional_kind) = build_step_rule_parameters(step_flavor, D_params)
+
+    # merge the two dicts of parameters
     D_params = dict(D_params.items() + D_additional_params.items())
+    D_kind = dict(D_kind.items() + D_additional_kind.items())
 
+
+    server_desc = train_desc['server']
     client = None
     if server_desc is not None:
 
@@ -99,52 +142,61 @@ def run_training(   batch_size, step_flavor,
                 client.connect()
                 print client.read_param_desc_from_server()
 
-        # This is now obsolete. We use the `server_sync_initial_read_extension`
-        # to do this job.
-        #client.perform_split(D_dropout_probs)
-        #for name in names:
-        #    param_value = client.pull_split_param(name)
-        #    set_param_value_shared_var(D_params, name, param_value)
+        # Note that we don't need to get the parameters here.
+        # We use the `server_sync_initial_read_extension` to do this job.
     
     
     for key in sync_desc:
         assert key in ['want_read_only', 'r', 'momentum_weights_scaling']
 
-    # Run this at every iteration, but that doesn't mean that we're updating at every iteration.
+    # Run extension at every iteration, but that doesn't mean that we're updating at every iteration.
     # It just means that we'll consider updating if the timing is good (in order to respect the
     # ratio `r` of time spend synching vs total).
-    print sync_desc
-    
-    server_sync_extension_auto_timing = ServerSyncAutoAdjustTiming( client, D_dropout_probs, names,
-                                                                    params_dict,
-                                                                    every_n_batches=1, verbose=True,
-                                                                    **sync_desc)
-
-    import copy
-    sync_desc_override_with_read_only = copy.copy(sync_desc)
-    sync_desc_override_with_read_only['want_read_only'] = True
-    server_sync_initial_read_extension = ServerSyncAutoAdjustTiming(client, D_dropout_probs, names,
-                                                                    params_dict,
-                                                                    before_training=True, verbose=True,
-                                                                    **sync_desc_override_with_read_only)
-
-
-    #
-    # TODO : Implement the `velocities` for the step_rule, whether it's RMSProp or whatever other step rule.
-    #
 
 
 
-    checkpoint_interval_nbr_batches = 100
-    # this launches the main loop internally
+    # TODO : These two next sections are really part of the code. They need to be uncommented.
+
+    # TODO : Find out how to manage `D_dropout_probs`.
+    #server_sync_extension_auto_timing = ServerSyncAutoAdjustTiming( client, D_dropout_probs, names,
+    #                                                                params_dict,
+    #                                                                every_n_batches=1, verbose=True,
+    #                                                                **sync_desc)
+    server_sync_extension_auto_timing = None
+
+    #import copy
+    #sync_desc_override_with_read_only = copy.copy(sync_desc)
+    #sync_desc_override_with_read_only['want_read_only'] = True
+    #server_sync_initial_read_extension = ServerSyncAutoAdjustTiming(client, D_dropout_probs, names,
+    #                                                                params_dict,
+    #                                                                before_training=True, verbose=True,
+    #                                                                **sync_desc_override_with_read_only)
+    server_sync_initial_read_extension = None
+
+
     main_loop = build_training(cg, error_rate, cost, step_rule,
-        batch_size=batch_size, dropout_bis = D_dropout_mouchete,
-        dataset_hdf5_file=dataset_hdf5_file,
-        checkpoint_interval_nbr_batches=checkpoint_interval_nbr_batches,
-        diagnostic_output=diagnostic_output,
-        saving_path=saving_path,
-        nbr_epochs=nbr_epochs,
-        server_sync_extension=server_sync_extension_auto_timing,
-        server_sync_initial_read_extension=server_sync_initial_read_extension)
+                               weight_decay_factor=train_desc['weight_decay_factor'],
+                               dataset_hdf5_file=train_desc['dataset_hdf5_file'],
+                               batch_size=train_desc['batch_size'],
+                               nbr_epochs=train_desc['nbr_epochs'],
+                               saving_path=saving_path,
+                               server_sync_extension=server_sync_extension,
+                               server_sync_initial_read_extension=server_sync_initial_read_extension,
+                               checkpoint_interval_nbr_batches=train_desc['server_sync_initial_read_extension'])
 
     main_loop.run()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

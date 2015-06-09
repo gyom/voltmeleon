@@ -19,9 +19,8 @@ floatX = theano.config.floatX
 import os
 import time
 
-# TODO : Before going here, you should to implement build_model.build_submodel properly.
 def build_training(cg, error_rate, cost, step_rule,
-                   weight_decay_factor=0.,
+                   weight_decay_factor=0.0,
                    dataset_hdf5_file=None,
                    batch_size=256,
                    nbr_epochs=1,

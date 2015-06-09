@@ -58,9 +58,9 @@ def build_submodel(input_shape,
                    L_dim_conv_layers,
                    L_filter_size,
                    L_pool_size,
-                   activation_conv,
+                   L_activation_conv,
                    L_dim_full_layers,
-                   activation_full,
+                   L_activation_full,
                    L_exo_dropout_conv_layers,
                    L_exo_dropout_full_layers,
                    L_endo_dropout_conv_layers,
@@ -84,7 +84,7 @@ def build_submodel(input_shape,
     conv_layers = []
     assert len(L_dim_conv_layers) == len(L_filter_size)
     assert len(L_dim_conv_layers) == len(L_pool_size)
-    assert len(L_dim_conv_layers) == len(activation_conv)
+    assert len(L_dim_conv_layers) == len(L_activation_conv)
     assert len(L_dim_conv_layers) == len(L_endo_dropout_conv_layers)
     assert len(L_dim_conv_layers) == len(L_exo_dropout_conv_layers)
     if len(L_dim_conv_layers):
@@ -93,7 +93,7 @@ def build_submodel(input_shape,
             dropout, index in zip(L_dim_conv_layers,
                                   L_filter_size,
                                   L_pool_size,
-                                  activation_conv,
+                                  L_activation_conv,
                                   L_exo_dropout_conv_layers,
                                   xrange(len(L_dim_conv_layers))
                                   )
@@ -139,14 +139,14 @@ def build_submodel(input_shape,
     # FULLY CONNECTED
     output_mlp = output_conv
     full_layers = []
-    assert len(L_dim_full_layers) == len(activation_full)
+    assert len(L_dim_full_layers) == len(L_activation_full)
     assert len(L_dim_full_layers) == len(L_endo_dropout_full_layers)
     assert len(L_dim_full_layers) == len(L_exo_dropout_full_layers)
 
     if len(L_dim_full_layers):
         for dim, activation_str,
             dropout, index in zip(L_dim_full_layers,
-                                  activation_full,
+                                  L_activation_full,
                                   L_exo_dropout_full_layers
                                   range(len(L_dim_conv_layers),
                                              len(L_dim_conv_layers)+ 
@@ -158,7 +158,7 @@ def build_submodel(input_shape,
                     activation = Rectifier()
                 elif activation_str.lower() == 'tanh':
                     activation = Tanh()
-                elif activation_str.lower() == '=sigmoid':
+                elif activation_str.lower() == 'sigmoid':
                     activation = Sigmoid()
                 else
                     raise Exception("unknown activation function : %s", activation_str)
@@ -438,7 +438,7 @@ def build_submodel_old(drop_conv, drop_mlp,
     return (cg, error_rate, cost, names, D_params)
 
 
-def build_step_rule_parameters(step_flavor, D_params, D_kind, weight_decay_factor=0.0):
+def build_step_rule_parameters(step_flavor, D_params, D_kind):
 
     # TO DO
     if step_flavor['method'].lower() == "rmsprop":
@@ -481,9 +481,15 @@ def build_step_rule_parameters(step_flavor, D_params, D_kind, weight_decay_facto
     else:
         raise Error("Unrecognized step flavor method : " + step_flavor['method'])
 
-    L_additional_params = step_rule.velocities
-    L_additional_kind = setp_rule.D_kind
-    return (step_rule, L_additional_params, L_additional_kind)
+    D_additional_params = step_rule.velocities
+    D_additional_kind = setp_rule.D_kind
+
+    # TODO : Make sure that these variables are indeed dictionaries and not lists.
+    #        Remove this afterwards.
+    assert type(D_additional_params) == dict
+    assert type(D_additional_kind) == dict
+
+    return (step_rule, D_additional_params, D_additional_kind)
 
 
 

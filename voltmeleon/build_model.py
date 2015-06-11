@@ -451,13 +451,14 @@ def build_step_rule_parameters(step_flavor, D_params, D_kind):
                             decay_rate=step_flavor['decay_rate'], D_params=D_params, D_kind = D_kind)
 
     # TO DO : implement this method
-    """
+
     elif step_flavor['method'].lower() == "adadelta":
         # maybe this should be a composite rule with a learning rate also
         assert 0.0 <= step_flavor['decay_rate']
         assert step_flavor['decay_rate'] <= 1.0
 
-        step_rule = AdaDelta(decay_rate=step_flavor['decay_rate'])
+        step_rule = optimisation_rule.AdaDelta(decay_rate=step_flavor['decay_rate'],
+                                               D_params=D_params, D_kind = D_kind)
 
     elif step_flavor['method'].lower() == "adam":
         assert 0.0 <= step_flavor['learning_rate']
@@ -467,8 +468,21 @@ def build_step_rule_parameters(step_flavor, D_params, D_kind):
             if step_flavor.has_key(key):
                 optional[key] = step_flavor[key]
 
-        step_rule = Adam(learning_rate=step_flavor['learning_rate'], **optional)
-    """
+        step_rule = optimisation_rule.Adam(learning_rate=step_flavor['learning_rate'],
+                                           D_params=D_params, D_kind = D_kind, **optional)
+
+
+    elif step_flavor['method'].lower() == "adagrad":
+        assert 0.0 <= step_flavor['learning_rate']
+
+        optional = {}
+        for key in ['epislon']:
+            if step_flavor.has_key(key):
+                optional[key] = step_flavor[key]
+
+        step_rule = optimisation_rule.AdaGrad(learning_rate=step_flavor['learning_rate'],
+                                              D_params=D_params, D_kind = D_kind, **optional)
+
     elif step_flavor['method'].lower() == "momentum":
         assert 0.0 <= step_flavor['learning_rate']
         assert 0.0 <= step_flavor['momentum']

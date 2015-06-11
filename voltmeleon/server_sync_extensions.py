@@ -1,7 +1,8 @@
 
 import time
 
-from architecture import (init_param, return_param)
+from common_tools import (set_param_value_shared_var, get_param_value_shared_var)
+#from architecture import (set_param_value_shared_var, return_param)
 
 import blocks
 from blocks.extensions import SimpleExtension
@@ -27,7 +28,7 @@ class ServerUpdateAfterTBatches_Full(SimpleExtension):
 
             for name in self.names:
                 param_value = self.client.pull_split_param(name)
-                init_param(self.params_dict, name, param_value)
+                set_param_value_shared_var(self.params_dict, name, param_value)
 
 # this is the current implementation
 class ServerUpdateAfterTBatches(SimpleExtension):
@@ -51,7 +52,7 @@ class ServerUpdateAfterTBatches(SimpleExtension):
             self.client.perform_split(self.D_dropout_probs)
             for name in self.names:
                 param_value = self.client.pull_split_param(name)
-                init_param(self.params_dict, name, param_value)
+                set_param_value_shared_var(self.params_dict, name, param_value)
 
 
 class ServerSyncAutoAdjustTiming(SimpleExtension):
@@ -129,7 +130,7 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
                     # Write all the parameters.
                     if self.client is not None:
                         for name in self.names:
-                            param_value = return_param(self.params_dict, name)
+                            param_value = get_param_value_shared_var(self.params_dict, name)
                             self.client.push_split_param(name, param_value)
                         if self.verbose:
                             print "Client pushing parameters to server."
@@ -143,14 +144,10 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
 
                 if self.client is not None:
                     self.client.perform_split(self.D_dropout_probs)
-
-                    # DEBUG
-                    #print self.client.splits_indices.keys()
-                    #print self.client.splits_indices['layer_5_W'][0:10]
                     
                     for name in self.names:
                         param_value = self.client.pull_split_param(name)
-                        init_param(self.params_dict, name, param_value)
+                        set_param_value_shared_var(self.params_dict, name, param_value)
                     if self.verbose:
                         print "Client pulling parameters to server."
                 else:

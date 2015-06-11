@@ -16,9 +16,16 @@ import numpy as np
 ####################################################
 
 
-#sys.path.append("../../client")
-#import client_api
-from client_api import ClientCNNAutoSplitter
+
+# Reminder : You probably need to modify your PYTHONPATH to have the
+#            `distdrop` library accessible.
+#    export PYTHONPATH=${PYTHONPATH}:/home/gyomalin/ML/deep-learning-suite/distdrop
+#    export PYTHONPATH=${PYTHONPATH}:/u/alaingui/Documents/distdrop
+#
+
+
+
+from distdrop.client.client_api import ClientCNNAutoSplitter
 
 
 from server_sync_extensions import ServerSyncAutoAdjustTiming

@@ -1,5 +1,7 @@
 
-# TODO : import the needed modules
+import theano
+floatX = theano.config.floatX
+
 
 def set_param_value_shared_var(D_params, name, value):
     if name in D_params:

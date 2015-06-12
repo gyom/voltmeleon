@@ -3,7 +3,7 @@ import time
 import numpy as np
 import theano
 import theano.tensor as T
-from blocks.bricks import Rectifier, Tanh, Sigmoid, Softmax, MLP, Linear
+from blocks.bricks import Rectifier, Tanh, Logistic, Softmax, MLP, Linear
 from blocks.initialization import Constant
 from blocks.roles import WEIGHT, BIAS, INPUT
 from blocks.graph import ComputationGraph, apply_dropout
@@ -28,11 +28,11 @@ def build_params(input, x, cnn_layer, mlp_layer):
             if p.name =="W":
                 kind = "WEIGHTS"
             elif p.name =="b":
-                kind = "BIASES":
-            else
+                kind = "BIASES"
+            else:
                 raise Exception("unhandled type of parameters : "
                                 "build_params expects only weights or biases (W,b) but received %s", p.name)
-            p.name = "layer_"+str(i)+"_"+p.name
+            p.name = "layer_%d_%s" % (i, p.name)
             D_params[p.name] = p
             D_kind[p.name] = "CONV_FILTER_"+kind
 
@@ -42,11 +42,11 @@ def build_params(input, x, cnn_layer, mlp_layer):
             if p.name =="W":
                 kind = "WEIGHTS"
             elif p.name =="b":
-                kind = "BIASES":
-            else
+                kind = "BIASES"
+            else:
                 raise Exception("unhandled type of parameters : "
                                 "build_params expects only weights or biases (W,b) but received %s", p.name)
-            p.name = "layer_"+str(i+len(cnn_layer))+"_"+p.name
+            p.name = "layer_%d_%s" % (i+len(cnn_layer), p.name)
             D_params[p.name] = p
             D_kind[p.name] = "FULLY_CONNECTED_"+kind
 
@@ -75,7 +75,7 @@ def build_submodel(input_shape,
     assert len(input_shape) == 3, "input_shape must be a 3d tensor"
 
     num_channels = input_shape[0]
-    image_size = input_shape[1:]
+    image_size = tuple(input_shape[1:])
     prediction = output_dim
 
     # CONVOLUTION
@@ -88,47 +88,52 @@ def build_submodel(input_shape,
     assert len(L_dim_conv_layers) == len(L_endo_dropout_conv_layers)
     assert len(L_dim_conv_layers) == len(L_exo_dropout_conv_layers)
     if len(L_dim_conv_layers):
-        for num_filters, filter_size,
+        for (num_filters, filter_size,
             pool_size, activation_str,
-            dropout, index in zip(L_dim_conv_layers,
+            dropout, index) in zip(L_dim_conv_layers,
                                   L_filter_size,
                                   L_pool_size,
                                   L_activation_conv,
                                   L_exo_dropout_conv_layers,
                                   xrange(len(L_dim_conv_layers))
-                                  )
+                                  ):
 
             # TO DO : leaky relu
             if activation_str.lower() == 'rectifier':
-                activation = Rectifier()
+                activation = Rectifier().apply
             elif activation_str.lower() == 'tanh':
-                activation = Tanh()
-            elif activation_str.lower() == 'sigmoid':
-                activation = Sigmoid()
-            else
+                activation = Tanh().apply
+            elif activation_str.lower() in ['sigmoid', 'logistic']:
+                activation = Logistic().apply
+            else:
                 raise Exception("unknown activation function : %s", activation_str)
 
-            assert dropout >= 0. and dropout < 1.
+            assert 0.0 <= dropout and dropout < 1.0
             num_filters = num_filters - int(num_filters*dropout)
 
             if pool_size[0] == 0 and pool_size[1] == 0:
                 layer_conv = ConvolutionalActivation(activation=activation,
                                                 filter_size=filter_size,
                                                 num_filters=num_filters,
-                                                name="layer_"+str(index))
-            else
+                                                name="layer_%d" % index)
+            else:
                 layer_conv = ConvolutionalLayer(activation=activation,
                                                 filter_size=filter_size,
                                                 num_filters=num_filters,
-                                                pooling_size=poolin_size,
-                                                name="layer_"+str(index))
+                                                pooling_size=pool_size,
+                                                name="layer_%d" % index)
 
             conv_layers.append(layer_conv)
-    
+
+        print conv_layers
+        print num_channels
+        print image_size
+
         convnet = ConvolutionalSequence(conv_layers, num_channels=num_channels,
                                     image_size=image_size,
-                                    weights_init=Constant(0.),
-                                    biases_init=Constant(0.))
+                                    weights_init=Constant(0.0),
+                                    biases_init=Constant(0.0),
+                                    name="conv_section")
         convnet.initialize()
         output_dim = np.prod(convnet.get_dim('output'))
         output_conv = convnet.apply(output_conv)
@@ -144,32 +149,32 @@ def build_submodel(input_shape,
     assert len(L_dim_full_layers) == len(L_exo_dropout_full_layers)
 
     if len(L_dim_full_layers):
-        for dim, activation_str,
-            dropout, index in zip(L_dim_full_layers,
+        for (dim, activation_str,
+            dropout, index) in zip(L_dim_full_layers,
                                   L_activation_full,
-                                  L_exo_dropout_full_layers
+                                  L_exo_dropout_full_layers,
                                   range(len(L_dim_conv_layers),
-                                             len(L_dim_conv_layers)+ 
-                                             len(L_dim_full_layers))
-                                         ):
+                                        len(L_dim_conv_layers)+ 
+                                        len(L_dim_full_layers))
+                                   ):
                                           
                 # TO DO : leaky relu
                 if activation_str.lower() == 'rectifier':
-                    activation = Rectifier()
+                    activation = Rectifier().apply
                 elif activation_str.lower() == 'tanh':
-                    activation = Tanh()
-                elif activation_str.lower() == 'sigmoid':
-                    activation = Sigmoid()
-                else
+                    activation = Tanh().apply
+                elif activation_str.lower() in ['sigmoid', 'logistic']:
+                    activation = Logistic().apply
+                else:
                     raise Exception("unknown activation function : %s", activation_str)
 
-                assert dropout >= 0. and dropout < 1.
+                assert 0.0 <= dropout and dropout < 1.0
                 dim = dim - int(dim*dropout)
 
                 layer_full = MLP(activations=[activation], dims=[dim],
-                                weights_init=Constant(0.),
-                                biases_init=Constant(0.),
-                                name="layer_"+str(index))
+                                 weights_init=Constant(0.0),
+                                 biases_init=Constant(0.0),
+                                name="layer_%d" % index)
                 layer_full.initialize()
                 full_layers.append(layer_full)
 
@@ -206,8 +211,7 @@ def build_submodel(input_shape,
 
     cg = ComputationGraph(cost)
     # DROPOUT
-    L_endo_dropout = L_endo_dropout_conv_layers +
-                     L_endo_dropout_full_layers
+    L_endo_dropout = L_endo_dropout_conv_layers + L_endo_dropout_full_layers
 
     cg_dropout = cg
     inputs = VariableFilter(roles=[INPUT])(cg.variables)
@@ -430,7 +434,7 @@ def build_submodel_old(drop_conv, drop_mlp,
         print "%s" % p.name
         print p.get_value().shape
 
-    D_params D_kind = {}
+    D_params = {}
     for param in L_params:
         D_params[param.name] = param
     ####################
@@ -447,8 +451,9 @@ def build_step_rule_parameters(step_flavor, D_params, D_kind):
         assert step_flavor['decay_rate'] <= 1.0
 
         # TODO : change momentum.RMSProp to take D_params instead of L_params
-        step_rule = optimisation_rule.RMSProp(learning_rate=step_flavor['learning_rate'],
-                            decay_rate=step_flavor['decay_rate'], D_params=D_params, D_kind = D_kind)
+        step_rule = optimisation_rule.RMSProp(D_params=D_params, D_kind=D_kind,
+                                              learning_rate=step_flavor['learning_rate'],
+                                              decay_rate=step_flavor['decay_rate'])
 
     # TO DO : implement this method
 
@@ -457,8 +462,9 @@ def build_step_rule_parameters(step_flavor, D_params, D_kind):
         assert 0.0 <= step_flavor['decay_rate']
         assert step_flavor['decay_rate'] <= 1.0
 
-        step_rule = optimisation_rule.AdaDelta(decay_rate=step_flavor['decay_rate'],
-                                               D_params=D_params, D_kind = D_kind)
+        step_rule = optimisation_rule.AdaDelta(D_params=D_params, D_kind=D_kind,
+                                               decay_rate=step_flavor['decay_rate'])
+                                               
 
     elif step_flavor['method'].lower() == "adam":
         assert 0.0 <= step_flavor['learning_rate']
@@ -468,8 +474,9 @@ def build_step_rule_parameters(step_flavor, D_params, D_kind):
             if step_flavor.has_key(key):
                 optional[key] = step_flavor[key]
 
-        step_rule = optimisation_rule.Adam(learning_rate=step_flavor['learning_rate'],
-                                           D_params=D_params, D_kind = D_kind, **optional)
+        step_rule = optimisation_rule.Adam(D_params=D_params, D_kind=D_kind,
+                                           learning_rate=step_flavor['learning_rate'],
+                                           **optional)
 
 
     elif step_flavor['method'].lower() == "adagrad":
@@ -480,18 +487,18 @@ def build_step_rule_parameters(step_flavor, D_params, D_kind):
             if step_flavor.has_key(key):
                 optional[key] = step_flavor[key]
 
-        step_rule = optimisation_rule.AdaGrad(learning_rate=step_flavor['learning_rate'],
-                                              D_params=D_params, D_kind = D_kind, **optional)
+        step_rule = optimisation_rule.AdaGrad(D_params=D_params, D_kind=D_kind,
+                                              learning_rate=step_flavor['learning_rate'],
+                                              **optional)
 
     elif step_flavor['method'].lower() == "momentum":
         assert 0.0 <= step_flavor['learning_rate']
         assert 0.0 <= step_flavor['momentum']
         assert step_flavor['momentum'] <= 1.0
 
-        step_rule = optimisation_rule.Momentum(   learning_rate=step_flavor['learning_rate'],
-                                momentum=step_flavor['momentum'],
-                                D_params=D_params,
-                                D_kind = D_kind)
+        step_rule = optimisation_rule.Momentum(D_params=D_params, D_kind=D_kind,
+                                               learning_rate=step_flavor['learning_rate'],
+                                               momentum=step_flavor['momentum'])
     else:
         raise Error("Unrecognized step flavor method : " + step_flavor['method'])
 

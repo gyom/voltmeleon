@@ -1,10 +1,15 @@
 
-# TODO : import the needed modules
+
+import os, sys
+import getopt
+
 
 import client_runner
 
+
 def usage():
     print "THEANO_FLAGS=device=gpu0,floatX=float32 python voltmeleon_run.py --experiment_dir=/home/gyomalin/NIPS/experiments/experiment_dir_1"
+    print "python voltmeleon_run.py --experiment_dir=config_examples/experiment_01"
 
 
 def run(experiment_dir):

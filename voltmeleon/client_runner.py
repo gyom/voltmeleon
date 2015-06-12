@@ -117,9 +117,9 @@ def run(model_desc, train_desc, experiment_dir, saving_path):
 
 
 
-    build_model.build_step_rule_parameters(step_flavor, D_params, D_kind)
+    build_model.build_step_rule_parameters(train_desc['step_flavor'], D_params, D_kind)
 
-    (step_rule, D_additional_params, D_additional_kind) = build_step_rule_parameters(step_flavor, D_params)
+    (step_rule, D_additional_params, D_additional_kind) = build_model.build_step_rule_parameters(train_desc['step_flavor'], D_params, D_kind)
 
     # merge the two dicts of parameters
     D_params = dict(D_params.items() + D_additional_params.items())

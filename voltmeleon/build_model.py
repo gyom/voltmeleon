@@ -8,13 +8,16 @@ from blocks.initialization import Constant
 from blocks.roles import WEIGHT, BIAS, INPUT
 from blocks.graph import ComputationGraph, apply_dropout
 from blocks.filter import VariableFilter
-from blocks.bricks.conv import ConvolutionalLayer, ConvolutionalSequence, ConvolutionalActivation
+from blocks.bricks.conv import (ConvolutionalLayer, ConvolutionalSequence,
+                                ConvolutionalActivation, Flattener)
 from blocks.bricks.cost import MisclassificationRate
 import h5py
 from contextlib import closing
 
 #from momentum import Momentum_dict
 import modified_blocks_algorithms as optimisation_rule
+import re
+from theano.compat import OrderedDict
 floatX = theano.config.floatX
 
 
@@ -98,6 +101,10 @@ def build_submodel(input_shape,
                                   xrange(len(L_dim_conv_layers))
                                   ):
 
+            # convert filter_size and pool_size in tuple
+            filter_size = tuple(filter_size)
+            pool_size = tuple(pool_size)
+
             # TO DO : leaky relu
             if activation_str.lower() == 'rectifier':
                 activation = Rectifier().apply
@@ -125,15 +132,12 @@ def build_submodel(input_shape,
 
             conv_layers.append(layer_conv)
 
-        print conv_layers
-        print num_channels
-        print image_size
-
         convnet = ConvolutionalSequence(conv_layers, num_channels=num_channels,
                                     image_size=image_size,
                                     weights_init=Constant(0.0),
                                     biases_init=Constant(0.0),
                                     name="conv_section")
+        convnet.push_allocation_config()
         convnet.initialize()
         output_dim = np.prod(convnet.get_dim('output'))
         output_conv = convnet.apply(output_conv)
@@ -147,7 +151,7 @@ def build_submodel(input_shape,
     assert len(L_dim_full_layers) == len(L_activation_full)
     assert len(L_dim_full_layers) == len(L_endo_dropout_full_layers)
     assert len(L_dim_full_layers) == len(L_exo_dropout_full_layers)
-
+    pre_dim = output_dim
     if len(L_dim_full_layers):
         for (dim, activation_str,
             dropout, index) in zip(L_dim_full_layers,
@@ -171,12 +175,13 @@ def build_submodel(input_shape,
                 assert 0.0 <= dropout and dropout < 1.0
                 dim = dim - int(dim*dropout)
 
-                layer_full = MLP(activations=[activation], dims=[dim],
+                layer_full = MLP(activations=[activation], dims=[pre_dim, dim],
                                  weights_init=Constant(0.0),
                                  biases_init=Constant(0.0),
                                 name="layer_%d" % index)
                 layer_full.initialize()
                 full_layers.append(layer_full)
+                pre_dim = dim
 
         for layer in full_layers:
             output_mlp = layer.apply(output_mlp)
@@ -215,10 +220,13 @@ def build_submodel(input_shape,
 
     cg_dropout = cg
     inputs = VariableFilter(roles=[INPUT])(cg.variables)
+
+    # TODO : print inputs to check
     for drop_rate, index in zip(L_endo_dropout, range(len(L_endo_dropout))):
         
         for input_ in inputs:
-            if re.match("layer_"+str(index)+"_apply_input_", input_):
+            m = re.match(r"layer_\d+_apply_input_", input_.name)
+            if m:
                 cg_dropout = apply_dropout(cg, [input_], drop_rate)
                 break
 
@@ -450,12 +458,9 @@ def build_step_rule_parameters(step_flavor, D_params, D_kind):
         assert 0.0 <= step_flavor['decay_rate']
         assert step_flavor['decay_rate'] <= 1.0
 
-        # TODO : change momentum.RMSProp to take D_params instead of L_params
         step_rule = optimisation_rule.RMSProp(D_params=D_params, D_kind=D_kind,
                                               learning_rate=step_flavor['learning_rate'],
                                               decay_rate=step_flavor['decay_rate'])
-
-    # TO DO : implement this method
 
     elif step_flavor['method'].lower() == "adadelta":
         # maybe this should be a composite rule with a learning rate also
@@ -503,11 +508,12 @@ def build_step_rule_parameters(step_flavor, D_params, D_kind):
         raise Error("Unrecognized step flavor method : " + step_flavor['method'])
 
     D_additional_params = step_rule.velocities
-    D_additional_kind = setp_rule.D_kind
+    D_additional_kind = step_rule.D_kind
 
     # TODO : Make sure that these variables are indeed dictionaries and not lists.
     #        Remove this afterwards.
-    assert type(D_additional_params) == dict
+
+    assert isinstance(D_additional_params, OrderedDict)
     assert type(D_additional_kind) == dict
 
     return (step_rule, D_additional_params, D_additional_kind)

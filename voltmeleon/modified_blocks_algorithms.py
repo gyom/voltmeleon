@@ -30,7 +30,7 @@ class BasicRMSProp(StepRule):
     with :class:`Scale`.
     For more information, see [Hint2014]_.
     """
-    def __init__(self, decay_rate=0.9, max_scaling=1e5, D_params=None, D_kind=None):
+    def __init__(self, D_params, D_kind, decay_rate=0.9, max_scaling=1e5):
         if not 0.0 <= decay_rate <= 1.0:
             raise ValueError("decay rate needs to be in [0, 1]")
         if max_scaling <= 0:
@@ -90,7 +90,7 @@ class RMSProp(CompositeRule):
     --------
     :class:`SharedVariableModifier`
     """
-    def __init__(self, learning_rate=1.0, decay_rate=0.9, max_scaling=1e5, D_params=None, D_kind=None):
+    def __init__(self, D_params, D_kind, learning_rate=1.0, decay_rate=0.9, max_scaling=1e5):
         basic_rms_prop = BasicRMSProp(decay_rate=decay_rate,
                                       max_scaling=max_scaling,
                                       D_params=D_params,
@@ -117,7 +117,7 @@ class BasicMomentum_dict(StepRule):
     step rule, _e.g._ :class:`Scale`. For an all-batteries-included
     experience, look at :class:`Momentum`.
     """
-    def __init__(self, D_params=None, D_kind = None, momentum=0.):
+    def __init__(self, D_params, D_kind, momentum=0.):
         self.momentum = shared_floatx(momentum)
         # dictionary of velocities
         self.velocities = OrderedDict()
@@ -160,7 +160,7 @@ class Momentum_dict(CompositeRule):
     --------
     :class:`SharedVariableModifier`
     """
-    def __init__(self, learning_rate=1.0, momentum=0., D_params=None, D_kind=None):
+    def __init__(self, D_params, D_kind, learning_rate=1.0, momentum=0.0):
         scale = Scale(learning_rate=learning_rate)
         basic_momentum = BasicMomentum_dict(momentum=momentum, D_params=D_params, D_kind=D_kind)
         self.learning_rate = scale.learning_rate
@@ -188,7 +188,7 @@ class AdaGrad(StepRule):
         stochastic optimization*,
        http://www.jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
     """
-    def __init__(self, learning_rate=0.002, epsilon=1e-6, D_params, D_kind):
+    def __init__(self, D_params, D_kind, learning_rate=0.002, epsilon=1e-6):
         self.learning_rate = learning_rate
         self.epsilon = epsilon
         self.velocities = OrderedDict()
@@ -232,9 +232,9 @@ class Adam(StepRule):
     decay_factor : float, optional
         Default value is set to 1 - 1e-8.
     """
-    def __init__(self, learning_rate=0.002,
+    def __init__(self, D_params, D_kind, learning_rate=0.002,
                  beta1=0.1, beta2=0.001, epsilon=1e-8,
-                 decay_factor=(1 - 1e-8), D_params, D_kind):
+                 decay_factor=(1 - 1e-8)):
         self.learning_rate = learning_rate
         self.beta1 = beta1
         self.beta2 = beta2
@@ -292,7 +292,7 @@ class AdaDelta(StepRule):
     .. [ADADELTA] Matthew D. Zeiler, *ADADELTA: An Adaptive Learning
        Rate Method*, arXiv:1212.5701.
     """
-    def __init__(self, decay_rate=0.95, epsilon=1e-6, D_params, D_kind):
+    def __init__(self, D_params, D_kind, decay_rate=0.95, epsilon=1e-6):
         if not 0.0 <= decay_rate <= 1.0:
             raise ValueError("decay rate needs to be in [0, 1]")
         self.decay_rate = shared_floatx(decay_rate)
@@ -312,8 +312,8 @@ class AdaDelta(StepRule):
             self.D_kind[velocity_x_tm1.name] = D_kind[p_name]
 
     def compute_step(self, param, previous_step):
-        mean_square_step_tm1 = self.velocities[param.name+"_tm1"
-        mean_square_delta_x_tm1 = self.velocities[param.name+"_xtm1"
+        mean_square_step_tm1 = self.velocities[param.name+"_tm1"]
+        mean_square_delta_x_tm1 = self.velocities[param.name+"_xtm1"]
 
         mean_square_step_t = (
             self.decay_rate * mean_square_step_tm1 +

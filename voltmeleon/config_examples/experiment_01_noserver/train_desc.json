@@ -11,10 +11,6 @@
 	"dataset_hdf5_file" : "/home/dpln/data/SVHN/ninjite_h5/all.h5",
 	
 
-	"server" : {"hostname" : "127.0.0.1",
-				"port" : 7000,
-				"alpha" : 0.8	},
-
 	"sync" : {	"want_read_only" : false,
 				"r" : 0.5,
 				"momentum_weights_scaling" : 0.5}

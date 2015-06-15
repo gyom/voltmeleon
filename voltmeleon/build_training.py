@@ -34,7 +34,9 @@ def build_training(cg, error_rate, cost, step_rule,
         cost = cost + weight_decay_factor
         cg = ComputationGraph(cost)
 
+    print "dataset_hdf5_file : %s" % dataset_hdf5_file
     train_set = H5PYDataset(dataset_hdf5_file, which_set='train')
+    return None
     valid_set = H5PYDataset(dataset_hdf5_file, which_set='valid')
     data_stream_train = DataStream.default_stream(
             train_set, iteration_scheme=ShuffledScheme(train_set.num_examples, batch_size))   

@@ -126,7 +126,11 @@ def run(model_desc, train_desc, experiment_dir, saving_path):
     D_kind = dict(D_kind.items() + D_additional_kind.items())
 
 
-    server_desc = train_desc['server']
+    if train_desc.has_key('server'):
+        server_desc = train_desc['server']
+    else:
+        server_desc = None
+
     client = None
     if server_desc is not None:
 
@@ -152,7 +156,7 @@ def run(model_desc, train_desc, experiment_dir, saving_path):
         # Note that we don't need to get the parameters here.
         # We use the `server_sync_initial_read_extension` to do this job.
     
-    
+    sync_desc = train_desc['sync']
     for key in sync_desc:
         assert key in ['want_read_only', 'r', 'momentum_weights_scaling']
 
@@ -181,15 +185,15 @@ def run(model_desc, train_desc, experiment_dir, saving_path):
     server_sync_initial_read_extension = None
 
 
-    main_loop = build_training(cg, error_rate, cost, step_rule,
-                               weight_decay_factor=train_desc['weight_decay_factor'],
-                               dataset_hdf5_file=train_desc['dataset_hdf5_file'],
-                               batch_size=train_desc['batch_size'],
-                               nbr_epochs=train_desc['nbr_epochs'],
-                               saving_path=saving_path,
-                               server_sync_extension=server_sync_extension,
-                               server_sync_initial_read_extension=server_sync_initial_read_extension,
-                               checkpoint_interval_nbr_batches=train_desc['server_sync_initial_read_extension'])
+    main_loop = build_training.build_training(cg, error_rate, cost, step_rule,
+                                              weight_decay_factor=train_desc['weight_decay_factor'],
+                                              dataset_hdf5_file=train_desc['dataset_hdf5_file'],
+                                              batch_size=train_desc['batch_size'],
+                                              nbr_epochs=train_desc['nbr_epochs'],
+                                              saving_path=saving_path,
+                                              server_sync_extension=server_sync_extension_auto_timing,
+                                              server_sync_initial_read_extension=server_sync_initial_read_extension,
+                                              checkpoint_interval_nbr_batches=train_desc['checkpoint_interval_nbr_batches'])
 
     main_loop.run()
 

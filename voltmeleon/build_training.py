@@ -6,7 +6,7 @@ from blocks.algorithms import GradientDescent
 from blocks.graph import ComputationGraph
 from blocks.filter import VariableFilter
 from blocks.extensions import FinishAfter, Printing
-from blocks.extensions.monitoring import DataStreamMonitoring
+from blocks.extensions.monitoring import DataStreamMonitoring, TrainingDataMonitoring
 from blocks.extensions.training import SharedVariableModifier
 from blocks.model import Model
 from fuel.streams import DataStream
@@ -32,12 +32,11 @@ def build_training(cg, error_rate, cost, step_rule,
     if 1e-8 < weight_decay_factor:
         weight_decay_factor = sum([(W**2).mean() for W in VariableFilter(roles=[WEIGHT])(cg.variables)])
         cost = cost + weight_decay_factor
+        cost.name = "cost"
         cg = ComputationGraph(cost)
 
-    print "dataset_hdf5_file : %s" % dataset_hdf5_file
-    train_set = H5PYDataset(dataset_hdf5_file, which_set='train')
-    return None
-    valid_set = H5PYDataset(dataset_hdf5_file, which_set='valid')
+    train_set = H5PYDataset(dataset_hdf5_file, which_sets=('train',))
+    valid_set = H5PYDataset(dataset_hdf5_file, which_sets=('valid',))
     data_stream_train = DataStream.default_stream(
             train_set, iteration_scheme=ShuffledScheme(train_set.num_examples, batch_size))   
     data_stream_valid = DataStream.default_stream(
@@ -51,11 +50,11 @@ def build_training(cg, error_rate, cost, step_rule,
         return np.array([now-timestamp_start_of_experiment, now], dtype=floatX)
     minibatch_timestamp_extension = SharedVariableModifier(minibatch_timestamp, update_minibatch_timestamp)
 
-    monitor_valid = TrainingDataMonitoring(
+    monitor_valid = DataStreamMonitoring(
         variables=[cost], data_stream=data_stream_valid, prefix="valid", every_n_batches=checkpoint_interval_nbr_batches)
 
-    monitor_train = DataStreamMonitoring(
-        variables=[cost, minibatch_timestamp], data_stream=data_stream_train, prefix="train", every_n_batches=checkpoint_interval_nbr_batches)
+    monitor_train = TrainingDataMonitoring(
+        variables=[cost, minibatch_timestamp], prefix="train", every_n_batches=checkpoint_interval_nbr_batches)
 
     extensions = [  monitor_valid,
                     monitor_train, 
@@ -78,7 +77,7 @@ def build_training(cg, error_rate, cost, step_rule,
     algorithm = GradientDescent(cost=cost, params=cg.parameters,
                                 step_rule=step_rule)
 
-    main_loop = MainLoop(data_stream=data_stream,
+    main_loop = MainLoop(data_stream=data_stream_train,
                         algorithm=algorithm, model = Model(cost),
                         extensions=extensions)
 
@@ -134,11 +133,7 @@ def build_training_old( cg, error_rate, cost, step_rule,
     valid_set = H5PYDataset(dataset_hdf5_file, which_set='test')
 
     data_stream_valid =DataStream.default_stream(
-            #valid_set, iteration_scheme=ShuffledScheme(10000, batch_size))
             valid_set, iteration_scheme=SequentialScheme(20*batch_size, batch_size))
-            #valid_set, iteration_scheme=ShuffledScheme(20*batch_size, batch_size))
-
-            #valid_set, iteration_scheme=ShuffledScheme(valid_set.num_examples, batch_size))
     
     """
     test_set = H5PYDataset(database['test'], which_set='test')

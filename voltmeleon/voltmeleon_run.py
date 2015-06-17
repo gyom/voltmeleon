@@ -8,11 +8,11 @@ import client_runner
 
 
 def usage():
-    print "THEANO_FLAGS=device=gpu0,floatX=float32 python voltmeleon_run.py --experiment_dir=/home/gyomalin/NIPS/experiments/experiment_dir_1"
+    print "THEANO_FLAGS=device=gpu0,floatX=float32 python voltmeleon_run.py --experiment_dir=/home/gyomalin/NIPS/experiments/experiment_dir_1 --output_server_params_desc_path=server_params_desc.json"
     print "python voltmeleon_run.py --experiment_dir=config_examples/experiment_01"
 
 
-def run(experiment_dir):
+def run(experiment_dir, output_server_params_desc_path=None):
 
     assert os.path.exists(experiment_dir), "Cannot find experiment_dir : %s" % experiment_dir
 
@@ -25,7 +25,7 @@ def run(experiment_dir):
     # hardcoded path for blocks saving a zip file
     saving_path = os.path.join(experiment_dir, "log.zip")
 
-    client_runner.run(model_desc, train_desc, experiment_dir, saving_path)
+    client_runner.run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=output_server_params_desc_path)
 
 
 def main(argv):
@@ -33,7 +33,7 @@ def main(argv):
     """
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hv", ["experiment_dir="])
+        opts, args = getopt.getopt(sys.argv[1:], "hv", ["experiment_dir=", "output_server_params_desc_path="])
 
     except getopt.GetoptError as err:
         # print help information and exit:
@@ -42,6 +42,7 @@ def main(argv):
         sys.exit(2)
 
     experiment_dir = None
+    output_server_params_desc_path = None
 
     verbose = False
     for o, a in opts:
@@ -52,11 +53,13 @@ def main(argv):
             sys.exit()
         elif o in ("--experiment_dir"):
             experiment_dir = a
+        elif o in ("--output_server_params_desc_path"):
+            output_server_params_desc_path = a
         else:
             assert False, "unhandled option"
 
 
-    run(experiment_dir)
+    run(experiment_dir, output_server_params_desc_path=output_server_params_desc_path)
 
 
 

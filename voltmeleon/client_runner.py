@@ -2,6 +2,8 @@
 import sys, os
 import getopt
 
+import json
+
 import numpy as np
 
 ####################################################
@@ -109,9 +111,14 @@ batch_size = train_desc['batch_size']
 """
 
 
-def run(model_desc, train_desc, experiment_dir, saving_path):
+def run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=None):
 
     # it's okay to not use the `experiment_dir` argument directly, for now
+
+    # If `output_server_params_desc_path` is used, then this function will terminate early
+    # after writing out the json file that the server will need.
+    # Conceptually, one can run this before the experiment, in order to obtain the
+    # file to be used for the server. Then we launch the server and we run the thing for real.
 
     (cg, error_rate, cost, D_params, D_kind) = build_model.build_submodel(**model_desc)
 
@@ -125,8 +132,13 @@ def run(model_desc, train_desc, experiment_dir, saving_path):
     D_params = dict(D_params.items() + D_additional_params.items())
     D_kind = dict(D_kind.items() + D_additional_kind.items())
 
-    build_model.get_model_desc_for_server(D_params, D_kind)
-    return
+    if output_server_params_desc_path is not None:
+        L_server_params_desc = build_model.get_model_desc_for_server(D_params, D_kind)
+        json.dump(L_server_params_desc, open(output_server_params_desc_path, "w"))
+        print "Wrote the json file for the server parameter description in %s. Now exiting." % output_server_params_desc_path
+        return
+
+
     if train_desc.has_key('server'):
         server_desc = train_desc['server']
     else:

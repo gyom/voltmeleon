@@ -537,13 +537,13 @@ def get_model_desc_for_server(D_params, D_kind):
 
     # TODO : know CONV or FULLY CONNECTED layer
     # it will help to do the reshape too
-    server_dict=[]
+    L_server_params_desc=[]
 
-    for param_name in D_params:
+    for (param_name, param) in D_params.items():
         params_dict={}
         params_dict["name"] = param_name
         params_dict["kind"] = D_kind[param_name]
-        param = D_params[param_name]
+
         # voir les tailles pour les reshape
         if D_kind[param.name]=="CONV_FILTER_WEIGHTS":
             params_dict["shape"] = list(param.get_value().shape)
@@ -559,9 +559,9 @@ def get_model_desc_for_server(D_params, D_kind):
                             param_name)
 
         assert len(params_dict["shape"])==4
-        server_dict.append(params_dict)
+        L_server_params_desc.append(params_dict)
 
-    return server_dict
+    return L_server_params_desc
 
 
 

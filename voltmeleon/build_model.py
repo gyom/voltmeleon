@@ -72,13 +72,15 @@ def build_submodel(input_shape,
     # TO DO : target size and name of the features
     # TO DO : border_mode
 
-    x = T.tensor4('x')
-    y = T.imatrix('y')
+    x = T.tensor4('features')
+    y = T.imatrix('targets')
 
     assert len(input_shape) == 3, "input_shape must be a 3d tensor"
 
     num_channels = input_shape[0]
     image_size = tuple(input_shape[1:])
+    print image_size
+    print num_channels
     prediction = output_dim
 
     # CONVOLUTION
@@ -141,6 +143,7 @@ def build_submodel(input_shape,
         convnet.initialize()
         output_dim = np.prod(convnet.get_dim('output'))
         output_conv = convnet.apply(output_conv)
+        
 
 
     output_conv = Flattener().apply(output_conv)
@@ -196,6 +199,7 @@ def build_submodel(input_shape,
                                             len(L_dim_full_layers))
                           )
     output_layer.initialize()
+    full_layers.append(output_layer)
     y_pred = output_layer.apply(output_mlp)
     y_hat = Softmax().apply(y_pred)
     # SOFTMAX and log likelihood
@@ -208,6 +212,7 @@ def build_submodel(input_shape,
     error_rate.name = "error_rate"
 
     # put names
+
     D_params, D_kind = build_params(x, T.matrix(), conv_layers, full_layers)
     # test computation graph
     
@@ -215,6 +220,8 @@ def build_submodel(input_shape,
     # TO DO : weight decay factor in the second json file !!!
 
     cg = ComputationGraph(cost)
+
+
     # DROPOUT
     L_endo_dropout = L_endo_dropout_conv_layers + L_endo_dropout_full_layers
 
@@ -231,7 +238,6 @@ def build_submodel(input_shape,
                 break
 
     cg = cg_dropout
-
 
     return (cg, error_rate, cost, D_params, D_kind)
 
@@ -333,8 +339,6 @@ def build_submodel_old(drop_conv, drop_mlp,
 
     assert L_nbr_hidden_units_left[0] == output_dim, "%d is not %d" % (L_nbr_hidden_units_left[0], output_dim)
 
-    print "mlp_dim_pairs"
-    print mlp_dim_pairs
 
     # MLP
     sequences_mlp = []

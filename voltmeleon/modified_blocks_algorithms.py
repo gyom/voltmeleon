@@ -48,10 +48,10 @@ class BasicRMSProp(StepRule):
 
 
     def compute_step(self, param, previous_step):
-        if param.name+"_momentum" in self.velocities:
-            mean_square_step_tm1 = self.velocities[param.name+"_momentum"]
+        if param.name+"_decay" in self.velocities:
+            mean_square_step_tm1 = self.velocities[param.name+"_decay"]
         else:
-            raise Error('unknow parameter %s', param.name)
+            raise Exception('unknow parameter %s', param.name)
 
         mean_square_step_t = (
             self.decay_rate * mean_square_step_tm1 +
@@ -133,7 +133,7 @@ class BasicMomentum_dict(StepRule):
         if param.name+"_momentum" in self.velocities:
             velocity = self.velocities[param.name+"_momentum"]
         else:
-            raise Error('unknow parameter %s', param.name)
+            raise Exception('unknow parameter %s', param.name)
                 
         step = self.momentum * velocity + previous_step
         updates = [(velocity, step)]

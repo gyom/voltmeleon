@@ -125,7 +125,8 @@ def run(model_desc, train_desc, experiment_dir, saving_path):
     D_params = dict(D_params.items() + D_additional_params.items())
     D_kind = dict(D_kind.items() + D_additional_kind.items())
 
-
+    build_model.get_model_desc_for_server(D_params, D_kind)
+    return
     if train_desc.has_key('server'):
         server_desc = train_desc['server']
     else:

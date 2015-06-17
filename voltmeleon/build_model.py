@@ -539,10 +539,11 @@ def get_model_desc_for_server(D_params, D_kind):
     # it will help to do the reshape too
     server_dict=[]
 
-    for param in D_params:
-        param_dict={}
-        param_dict["name"] = param.name
-        param_dict["kind"] = D_kind[param.name]
+    for param_name in D_params:
+        params_dict={}
+        params_dict["name"] = param_name
+        params_dict["kind"] = D_kind[param_name]
+        param = D_params[param_name]
         # voir les tailles pour les reshape
         if D_kind[param.name]=="CONV_FILTER_WEIGHTS":
             params_dict["shape"] = list(param.get_value().shape)
@@ -554,8 +555,8 @@ def get_model_desc_for_server(D_params, D_kind):
             params_dict["shape"] = [1] + list(param.get_value().shape) + [1, 1]
         else:
             raise Exception("unknow kind of parameters : %s for param %s",
-                            D_kind[param.name],
-                            param.name)
+                            D_kind[param_name],
+                            param_name)
 
         assert len(params_dict["shape"])==4
         server_dict.append(params_dict)

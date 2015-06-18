@@ -10,14 +10,14 @@ from blocks.extensions import SimpleExtension
 # this is an old implementation that will be replaced
 class ServerUpdateAfterTBatches_Full(SimpleExtension):
 
-    def __init__(self, client, D_dropout_probs, names, params_dict, T, **kwargs):
-        # `params_dict` contains both the parameters and the momentums
+    def __init__(self, client, D_dropout_probs, names, D_params, T, **kwargs):
+        # `D_params` contains both the parameters and the momentums
         super(ServerUpdateAfterTBatches, self).__init__(after_n_batches=T, **kwargs)
 
         self.client = client
         self.D_dropout_probs = D_dropout_probs
         self.names = names
-        self.params_dict = params_dict
+        self.D_params = D_params
         self.T = T
 
     def do(self, which_callback, *args):
@@ -28,13 +28,13 @@ class ServerUpdateAfterTBatches_Full(SimpleExtension):
 
             for name in self.names:
                 param_value = self.client.pull_split_param(name)
-                set_param_value_shared_var(self.params_dict, name, param_value)
+                set_param_value_shared_var(self.D_params, name, param_value)
 
 # this is the current implementation
 class ServerUpdateAfterTBatches(SimpleExtension):
 
     def __init__(self, client, D_dropout_probs, D_params, T, **kwargs):
-        # `params_dict` contains both the parameters and the momentums
+        # `D_params` contains both the parameters and the momentums
         super(ServerUpdateAfterTBatches, self).__init__(every_n_batches=T, **kwargs)
 
         self.client = client
@@ -50,7 +50,9 @@ class ServerUpdateAfterTBatches(SimpleExtension):
             self.client.perform_split(self.D_dropout_probs)
             for (name, param_var) in D_params.items():
                 param_value = self.client.pull_split_param(name)
-                param_var.set_value(param_value)
+                shape = param_var.get_value(borrow=True, return_internal_type=True).shape
+                param_var.set_value(param_value.reshape(shape))
+
 
 
 class ServerSyncAutoAdjustTiming(SimpleExtension):
@@ -58,10 +60,10 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
     # make sure to specify the argument "every_n_batches=T" when you instantiate this extension,
     # or something to that effect to determine how often we want to call it
 
-    def __init__(self, client, D_dropout_probs, params_dict,
+    def __init__(self, client, D_dropout_probs, D_params,
         want_read_only=False, r=0.25, momentum_weights_scaling=1.0,
         verbose=False, **kwargs):
-        # `params_dict` contains both the parameters and the momentums
+        # `D_params` contains both the parameters and the momentums
         super(ServerSyncAutoAdjustTiming, self).__init__(**kwargs)
 
         # When `client` is None, you get a kind of "dry_run" version
@@ -70,7 +72,7 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
         self.client = client
 
         self.D_dropout_probs = D_dropout_probs
-        self.params_dict = params_dict
+        self.D_params = D_params
 
         # `want_read_only` is True if we want to skip sending updates to the server
         self.want_read_only = want_read_only
@@ -126,7 +128,7 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
                 if not self.want_read_only:
                     # Write all the parameters.
                     if self.client is not None:
-                        for (name, param_var) in D_params.items():
+                        for (name, param_var) in self.D_params.items():
                             param_value = param_var.get_value()
                             self.client.push_split_param(name, param_value)
                         if self.verbose:
@@ -142,10 +144,11 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
                 if self.client is not None:
                     self.client.perform_split(self.D_dropout_probs)
 
-
-                    for (name, param_var) in D_params.items():
+                    for (name, param_var) in self.D_params.items():
                         param_value = self.client.pull_split_param(name)
-                        param_var.set_value(param_value)
+                        shape = param_var.get_value(borrow=True, return_internal_type=True).shape
+                        #shape = param_var.shape.eval()
+                        param_var.set_value(param_value.reshape(shape))
                     if self.verbose:
                         print "Client pulling parameters to server."
                 else:

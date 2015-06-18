@@ -114,7 +114,6 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
                                                                     D_params,
                                                                     every_n_batches=1, verbose=True,
                                                                     **sync_desc)
-    server_sync_extension_auto_timing = None
 
     import copy
     sync_desc_override_with_read_only = copy.copy(sync_desc)
@@ -123,7 +122,6 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
                                                                     D_params,
                                                                     before_training=True, verbose=True,
                                                                     **sync_desc_override_with_read_only)
-    server_sync_initial_read_extension = None
 
 
     main_loop = build_training.build_training(cg, error_rate, cost, step_rule,

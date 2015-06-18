@@ -93,11 +93,15 @@ def build_submodel(input_shape,
     assert len(L_dim_conv_layers) == len(L_endo_dropout_conv_layers)
     assert len(L_dim_conv_layers) == len(L_exo_dropout_conv_layers)
 
-    # reguarding the batch dropout : the dropout is applied on the filter
+    # regarding the batch dropout : the dropout is applied on the filter
     # which is equivalent to the output dimension
     # you have to look at the dropout_rate of the next layer
     # that is why we need to have the first dropout value of L_exo_dropout_full_layers
     
+    # the first value has to be 0.0 in this context, and we'll
+    # assume that it is, but let's have an assert
+    assert L_exo_dropout_conv_layers[0] == 0.0, "L_exo_dropout_conv_layers[0] has to be 0.0 in this context. There are ways to make it work, of course, but we don't support this with this scripts."
+
     # here modifitication of L_exo_dropout_conv_layers
     L_exo_dropout_conv_layers = L_exo_dropout_conv_layers[1:] + [L_exo_dropout_full_layers[0]]
 
@@ -356,7 +360,8 @@ def get_model_desc_for_server(D_params, D_kind):
         if D_kind[param.name]=="CONV_FILTER_WEIGHTS":
             params_dict["shape"] = list(param.get_value().shape)
         elif D_kind[param.name]=="CONV_FILTER_BIASES":
-            params_dict["shape"] = [1] + list(param.get_value().shape)
+            E = list(param.get_value().shape)
+            params_dict["shape"] = [E[0], 1, E[1], E[2]]
         elif D_kind[param.name]=="FULLY_CONNECTED_WEIGHTS":
             params_dict["shape"] = list(param.get_value().shape) + [1, 1]
         elif D_kind[param.name]=="FULLY_CONNECTED_BIASES":

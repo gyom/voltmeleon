@@ -36,81 +36,6 @@ import build_model
 import build_training
 
 
-"""
-
-ef build_submodel(input_shape,
-                   output_dim,
-                   L_dim_conv_layers,
-                   L_filter_size,
-                   L_pool_size,
-                   L_activation_conv,
-                   L_dim_full_layers,
-                   L_activation_full,
-                   L_exo_dropout_conv_layers,
-                   L_exo_dropout_full_layers,
-                   L_endo_dropout_conv_layers,
-                   L_endo_dropout_full_layers):
-
-
-
-
-
-    #learning_rate = experiment_desc['learning_rate']
-    #momentum = experiment_desc['momentum']
-    step_flavor = experiment_desc['step_flavor']    
-    integral_drop_rate = experiment_desc['integral_drop_rate']
-    flecked_drop_rate = experiment_desc['flecked_drop_rate']
-    L_nbr_filters = experiment_desc['L_nbr_filters']
-    L_nbr_hidden_units = experiment_desc['L_nbr_hidden_units']
-    weight_decay_factor = experiment_desc['weight_decay_factor'] if experiment_desc.has_key('weight_decay_factor') else 0.0
-    dataset_hdf5_file = experiment_desc['dataset_hdf5_file']
-
-    # TODO : Figure out what to do with `saving_path`.
-    # "saving_path" : "/home/dpln/NIPS/experiments/debug",
-    saving_path = experiment_desc['saving_path']
-
-    server_desc = experiment_desc['server'] if experiment_desc.has_key('server') else None
-    sync_desc = experiment_desc['sync'] if experiment_desc.has_key('sync') else None
-
-
-    optional_args = {}
-    for key in ['nbr_epochs']:
-        if experiment_desc.has_key(key):
-            optional_args[key] = experiment_desc[key]
-
-    assert 1 <= batch_size
-    assert os.path.exists(dataset_hdf5_file)
-
-    print "L_nbr_filters : " + str(L_nbr_filters) 
-    print "L_nbr_hidden_units : " + str(L_nbr_hidden_units) 
-
-    run_training(   batch_size, step_flavor,
-                    integral_drop_rate, flecked_drop_rate,
-                    L_nbr_filters, L_nbr_hidden_units,
-                    weight_decay_factor=weight_decay_factor,
-                    dataset_hdf5_file=dataset_hdf5_file,
-                    saving_path=saving_path,
-                    server_desc=server_desc,
-                    sync_desc=sync_desc,
-                    **optional_args)
-
-
-batch_size = train_desc['batch_size']
-
-
-   batch_size, step_flavor,
-                    integral_drop_rate, flecked_drop_rate,
-                    L_nbr_filters, L_nbr_hidden_units,
-                    weight_decay_factor,
-                    dataset_hdf5_file,
-                    saving_path,
-                    nbr_epochs,
-                    server_desc,
-                    sync_desc):
-
-"""
-
-
 def run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=None):
 
     # it's okay to not use the `experiment_dir` argument directly, for now
@@ -178,23 +103,26 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
     # ratio `r` of time spend synching vs total).
 
 
+    # add a 0.0 at the end because we keep all the outputs, and that's not a number
+    # that's provided by the L_endo_dropout_full_layers variable
+    L_exo_dropout = model_desc['L_exo_dropout_conv_layers'] + model_desc['L_exo_dropout_full_layers'] + [0.0]
 
-    # TODO : These two next sections are really part of the code. They need to be uncommented.
+    D_dropout_probs = dict( ("layer_%d" % layer_number, e) for (layer_number, e) in enumerate(zip(L_exo_dropout, L_exo_dropout[1:])) )
 
-    # TODO : Find out how to manage `D_dropout_probs`.
-    #server_sync_extension_auto_timing = ServerSyncAutoAdjustTiming( client, D_dropout_probs, names,
-    #                                                                params_dict,
-    #                                                                every_n_batches=1, verbose=True,
-    #                                                                **sync_desc)
+
+    server_sync_extension_auto_timing = ServerSyncAutoAdjustTiming( client, D_dropout_probs,
+                                                                    D_params,
+                                                                    every_n_batches=1, verbose=True,
+                                                                    **sync_desc)
     server_sync_extension_auto_timing = None
 
-    #import copy
-    #sync_desc_override_with_read_only = copy.copy(sync_desc)
-    #sync_desc_override_with_read_only['want_read_only'] = True
-    #server_sync_initial_read_extension = ServerSyncAutoAdjustTiming(client, D_dropout_probs, names,
-    #                                                                params_dict,
-    #                                                                before_training=True, verbose=True,
-    #                                                                **sync_desc_override_with_read_only)
+    import copy
+    sync_desc_override_with_read_only = copy.copy(sync_desc)
+    sync_desc_override_with_read_only['want_read_only'] = True
+    server_sync_initial_read_extension = ServerSyncAutoAdjustTiming(client, D_dropout_probs,
+                                                                    D_params,
+                                                                    before_training=True, verbose=True,
+                                                                    **sync_desc_override_with_read_only)
     server_sync_initial_read_extension = None
 
 

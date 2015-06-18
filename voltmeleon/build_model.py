@@ -228,230 +228,23 @@ def build_submodel(input_shape,
     cg_dropout = cg
     inputs = VariableFilter(roles=[INPUT])(cg.variables)
 
+    print inputs
+
     # TODO : print inputs to check
-    for drop_rate, index in zip(L_endo_dropout, range(len(L_endo_dropout))):
+    for (index, drop_rate) in enumerate(L_endo_dropout):
         
         for input_ in inputs:
-            m = re.match(r"layer_\d+_apply_input_", input_.name)
-            if m:
+            m = re.match(r"layer_(\d+)_apply.*", input_.name)
+            if m and index == int(m.group(1)):
                 cg_dropout = apply_dropout(cg, [input_], drop_rate)
+                print "Applied dropout %f on %s." % (drop_rate, input_.name)
                 break
+
 
     cg = cg_dropout
 
     return (cg, error_rate, cost, D_params, D_kind)
 
-
-def build_submodel_old(drop_conv, drop_mlp,
-                   L_nbr_filters, L_nbr_hidden_units,
-                   weight_decay_factor=0.0):
-
-    # dataset_hdf5_file is like "/rap/jvb-000-aa/data/ImageNet_ILSVRC2010/pylearn2_h5/imagenet_2010_train.h5"
-
-    # We can change the architecture now
-    # assert len(L_nbr_filters) == 4
-    # assert len(L_nbr_hidden_units) == 4
-
-
-    # Note that L_nb_hidden_units[0] is something constrained
-    # by the junction between the filters and the fully-connected section.
-    # Find this value in the JSON file that describes the model.
-
-    x=T.tensor4('x')
-    
-    # preprocessing should be applied in the hdf5 file
-    """
-    if dataset_hdf5_file is not None:
-        with closing(h5py.File(dataset_hdf5_file, 'r')) as f:
-            x_mean = (f['x_mean']).value
-            x_mean = x_mean.reshape((1, 3, 32, 32)) # equivalent to a dimshuffle on the number of elem in the batch
-        x = (x - x_mean)
-        # TODO : maybe normalize ?
-    
-    y = T.imatrix('y')
-    """
-
-    num_channels = 3
-    filter_size = (3, 3)
-    activation = Identity().apply
-    #activation = Rectifier().apply
-    ########
-    num_filters = L_nbr_filters[0] - int(drop_conv[0]*L_nbr_filters[0])
-    layer0 = ConvolutionalActivation(activation, filter_size, num_filters,
-                              num_channels,
-                              weights_init=IsotropicGaussian(0.1),
-                              biases_init=Uniform(width=0.1), name="layer_0")
-
-    
-    num_channels = num_filters
-    num_filters = L_nbr_filters[1] - int(drop_conv[1]*L_nbr_filters[1])
-    filter_size = (3,3)
-    layer1 = ConvolutionalActivation(activation, filter_size, num_filters,
-                              num_channels,
-                              weights_init=IsotropicGaussian(0.1),
-                              biases_init=Uniform(width=0.1), name="layer_1")
-
-    
-    num_channels = num_filters
-    num_filters = L_nbr_filters[2] - int(drop_conv[2]*L_nbr_filters[2])
-    filter_size=(3,3)
-    pooling_size = 2   
-    layer2 = ConvolutionalLayer(activation, filter_size, num_filters,
-                              (pooling_size, pooling_size),
-                              num_channels,
-                              weights_init=IsotropicGaussian(0.1),
-                              biases_init=Uniform(width=0.1), name="layer_2")
-
-    
-    num_channels = num_filters
-    num_filters = L_nbr_filters[3] - int(drop_conv[3]*L_nbr_filters[3])
-    filter_size=(2,2)
-    pooling_size = 2
-    layer3 = ConvolutionalLayer(activation, filter_size, num_filters,
-                              (pooling_size, pooling_size),
-                              num_channels,
-                              weights_init=IsotropicGaussian(0.1),
-                              biases_init=Uniform(width=0.1), name="layer_3")
-
-
-    ####################################################
-
-
-    conv_layers = [layer0, layer1, layer2, layer3]
-    convnet = ConvolutionalSequence(conv_layers, num_channels= 3,
-                                    image_size=(32, 32))
-    convnet.initialize()
-    output_dim = np.prod(convnet.get_dim('output'))
-    # Fully connected layers
-
-    output_conv = Flattener().apply(convnet.apply(x))
-
-    nbr_classes_to_predict = 10 # because it's SVHN
-
-
-    #nbr_hidden_units = [output_dim, 1024, 512, 512]
-    padded_drop_mlp = drop_mlp
-
-    L_nbr_hidden_units_left = [ n-int(p*n) for (n,p) in zip(L_nbr_hidden_units, padded_drop_mlp) ]
-    # add afterwards the final number of hidden units to the number of classes to predict
-    mlp_dim_pairs = zip(L_nbr_hidden_units_left, L_nbr_hidden_units_left[1:]) + [(L_nbr_hidden_units_left[-1], nbr_classes_to_predict)]
-
-
-    assert L_nbr_hidden_units_left[0] == output_dim, "%d is not %d" % (L_nbr_hidden_units_left[0], output_dim)
-
-
-    # MLP
-    sequences_mlp = []
-    mlp_layer = []
-
-    mlp_layer0 = Linear(mlp_dim_pairs[0][0], mlp_dim_pairs[0][1],
-                        weights_init=IsotropicGaussian(0.1),
-                        biases_init=Uniform(width=0.1), name="layer_4")
-    mlp_layer0.initialize()
-    sequences_mlp += [mlp_layer0, Rectifier(name="layer4_1")]
-    mlp_layer.append(mlp_layer0)
-
-
-
-
-    mlp_layer1 = Linear(mlp_dim_pairs[1][0], mlp_dim_pairs[1][1],
-                        weights_init=IsotropicGaussian(0.1),
-                        biases_init=Uniform(width=0.1), name="layer_5")
-    mlp_layer1.initialize()
-    mlp_layer.append(mlp_layer1)
-    sequences_mlp += [mlp_layer1, Rectifier(name="layer5_1")]
-
-    mlp_layer2 = Linear(mlp_dim_pairs[2][0], mlp_dim_pairs[2][1],
-                        weights_init=IsotropicGaussian(0.1),
-                        biases_init=Uniform(width=0.1), name="layer_6")
-    mlp_layer2.initialize()
-    mlp_layer.append(mlp_layer2)
-    sequences_mlp += [mlp_layer2, Rectifier(name="layer6_1")]
-
-
-
-
-    # having Identity() there is a trick from Eloi and Bart
-    # to get something more stable numerically by having the
-    # software (or cross-entropy) come later
-    
-    #mlp_layer3 = MLP([Identity()],
-    #                 [mlp_dim_pairs[3][0], mlp_dim_pairs[3][1]],
-    #                 weights_init=IsotropicGaussian(0.1),
-    #                 biases_init=Uniform(width=0.1), name="layer7")
-
-    mlp_layer3 = Linear(mlp_dim_pairs[3][0], mlp_dim_pairs[3][1],
-                        weights_init=IsotropicGaussian(0.1),
-                        biases_init=Uniform(width=0.1), name="layer_7")
-    mlp_layer.append(mlp_layer3)
-    mlp_layer3.initialize()
-    sequences_mlp += [mlp_layer3]
-    
-    #print "mlp_dim_pairs[3] is "
-    #print mlp_dim_pairs[3]
-
-    output_test_0 = Rectifier(name="toto1").apply(mlp_layer0.apply(output_conv))
-    output_test_1 = Rectifier(name="toto2").apply(mlp_layer1.apply(output_test_0))
-    output_test_2 = Rectifier(name="toto3").apply(mlp_layer2.apply(output_test_1))
-    output_test_3 = mlp_layer3.apply(output_test_2)
-    output_full = output_test_3
-
-    #output_full = output_conv
-    #for i in xrange(len(sequences_mlp)):
-    #    output_full = sequences_mlp[i].apply(output_full)
-
-    
-
-    # sanity check (optional)
-    """
-    arbitrary_tmp_batch_size = 834
-    f = theano.function([x], output_full)
-    value_x = np.random.ranf((arbitrary_tmp_batch_size, 3, 32, 32)).astype(np.float32)
-    A = f(value_x)
-    print A.shape
-    assert A.shape == (arbitrary_tmp_batch_size, nbr_classes_to_predict)
-    """
-
-    # Numerical stable softmax
-    output_full = Softmax().apply(output_full)
-    cost = CategoricalCrossEntropy().apply( y.flatten(), output_full )
-
-    #cost = Softmax().categorical_cross_entropy(y.flatten(), output_full)
-    #cost = (output_full-1).norm(2) + 0.001*y.norm(2)
-
-
-    if 1e-8 < weight_decay_factor:
-        cg = ComputationGraph(cost)
-        weight_decay_factor = sum([(W**2).mean() for W in VariableFilter(roles=[WEIGHT])(cg.variables)])
-        cost = cost + weight_decay_factor
-
-    cost.name = 'cost'
-    cg = ComputationGraph(cost)
-
-
-    # put names
-    L_params, names = build_params(x, T.matrix(), conv_layers, mlp_layer)
-    # test computation graph
-    error_rate_brick = MisclassificationRate()
-    error_rate = error_rate_brick.apply(y.flatten(), output_full)
-
-    #error_rate = errors(output_full, y)
-    error_rate.name = 'error'
-    ###step_rule = Momentum_dict(learning_rate, momentum, params=params)
-    
-
-    print "params right out of blocks"
-    print L_params
-    for p in L_params:
-        print "%s" % p.name
-        print p.get_value().shape
-
-    D_params = {}
-    for param in L_params:
-        D_params[param.name] = param
-    ####################
-    
-    return (cg, error_rate, cost, names, D_params)
 
 
 def build_step_rule_parameters(step_flavor, D_params, D_kind):

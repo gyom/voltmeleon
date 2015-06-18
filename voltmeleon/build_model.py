@@ -92,6 +92,15 @@ def build_submodel(input_shape,
     assert len(L_dim_conv_layers) == len(L_activation_conv)
     assert len(L_dim_conv_layers) == len(L_endo_dropout_conv_layers)
     assert len(L_dim_conv_layers) == len(L_exo_dropout_conv_layers)
+
+    # reguarding the batch dropout : the dropout is applied on the filter
+    # which is equivalent to the output dimension
+    # you have to look at the dropout_rate of the next layer
+    # that is why we need to have the first dropout value of L_exo_dropout_full_layers
+    
+    # here modifitication of L_exo_dropout_conv_layers
+    L_exo_dropout_conv_layers = L_exo_dropout_conv_layers[1:] + [L_exo_dropout_full_layers[0]]
+
     if len(L_dim_conv_layers):
         for (num_filters, filter_size,
             pool_size, activation_str,
@@ -152,8 +161,14 @@ def build_submodel(input_shape,
     output_mlp = output_conv
     full_layers = []
     assert len(L_dim_full_layers) == len(L_activation_full)
-    assert len(L_dim_full_layers) == len(L_endo_dropout_full_layers)
-    assert len(L_dim_full_layers) == len(L_exo_dropout_full_layers)
+    assert len(L_dim_full_layers) + 1 == len(L_endo_dropout_full_layers)
+    assert len(L_dim_full_layers) + 1 == len(L_exo_dropout_full_layers)
+
+    # reguarding the batch dropout : the dropout is applied on the filter
+    # which is equivalent to the output dimension
+    # you have to look at the dropout_rate of the next layer
+    # that is why we throw away the first value of L_exo_dropout_full_layers
+    L_exo_dropout_full_layers = L_exo_dropout_full_layers[1:]
     pre_dim = output_dim
     if len(L_dim_full_layers):
         for (dim, activation_str,

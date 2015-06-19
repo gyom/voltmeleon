@@ -4,13 +4,13 @@ import numpy as np
 import theano
 import theano.tensor as T
 from blocks.bricks import Rectifier, Tanh, Logistic, Softmax, MLP, Linear
-from blocks.initialization import Constant
+from blocks.initialization import Constant, Uniform
 from blocks.roles import WEIGHT, BIAS, INPUT
 from blocks.graph import ComputationGraph, apply_dropout
 from blocks.filter import VariableFilter
 from blocks.bricks.conv import (ConvolutionalLayer, ConvolutionalSequence,
                                 ConvolutionalActivation, Flattener)
-from blocks.bricks.cost import MisclassificationRate
+from blocks.bricks.cost import MisclassificationRate, CategoricalCrossEntropy
 import h5py
 from contextlib import closing
 
@@ -20,6 +20,8 @@ import re
 from theano.compat import OrderedDict
 floatX = theano.config.floatX
 
+# to debug our model that just won't train on MNIST !
+import blocks.algorithms
 
 def build_params(input, x, cnn_layer, mlp_layer):
 
@@ -149,7 +151,7 @@ def build_submodel(input_shape,
 
         convnet = ConvolutionalSequence(conv_layers, num_channels=num_channels,
                                     image_size=image_size,
-                                    weights_init=Constant(0.0),
+                                    weights_init=Uniform(width=0.1),
                                     biases_init=Constant(0.0),
                                     name="conv_section")
         convnet.push_allocation_config()
@@ -198,7 +200,7 @@ def build_submodel(input_shape,
                 dim = dim - int(dim*dropout)
 
                 layer_full = MLP(activations=[activation], dims=[pre_dim, dim],
-                                 weights_init=Constant(0.0),
+                                 weights_init=Uniform(width=0.1),
                                  biases_init=Constant(0.0),
                                 name="layer_%d" % index)
                 layer_full.initialize()
@@ -212,8 +214,8 @@ def build_submodel(input_shape,
 
     # COST FUNCTION
     output_layer = Linear(output_dim, prediction,
-                          weights_init=Constant(0.),
-                          biases_init=Constant(0.),
+                          weights_init=Uniform(width=0.1),
+                          biases_init=Constant(0.0),
                           name="layer_"+str(len(L_dim_conv_layers)+ 
                                             len(L_dim_full_layers))
                           )
@@ -222,7 +224,11 @@ def build_submodel(input_shape,
     y_pred = output_layer.apply(output_mlp)
     y_hat = Softmax().apply(y_pred)
     # SOFTMAX and log likelihood
-    cost = Softmax().categorical_cross_entropy(y.flatten(), y_pred)
+    y_pred = Softmax().apply(y_pred)
+    # be careful. one version expects the output of a softmax; the other expects just the
+    # output of the network
+    cost = CategoricalCrossEntropy().apply(y.flatten(), y_pred)
+    #cost = Softmax().categorical_cross_entropy(y.flatten(), y_pred)
     cost.name = "cost"
 
     # Misclassification
@@ -317,14 +323,25 @@ def build_step_rule_parameters(step_flavor, D_params, D_kind):
         assert 0.0 <= step_flavor['momentum']
         assert step_flavor['momentum'] <= 1.0
 
-        step_rule = optimisation_rule.Momentum(D_params=D_params, D_kind=D_kind,
-                                               learning_rate=step_flavor['learning_rate'],
-                                               momentum=step_flavor['momentum'])
+        #step_rule = optimisation_rule.Momentum(D_params=D_params, D_kind=D_kind,
+        #                                       learning_rate=step_flavor['learning_rate'],
+        #                                       momentum=step_flavor['momentum'])
+        step_rule = blocks.algorithms.Momentum(learning_rate=step_flavor['learning_rate'], momentum=step_flavor['momentum'])
+        
+
     else:
         raise Error("Unrecognized step flavor method : " + step_flavor['method'])
 
-    D_additional_params = step_rule.velocities
-    D_additional_kind = step_rule.D_kind
+    # This is because we debug things by using the blocks.algorithms implementations
+    # and they don't have these attributes.
+    if hasattr(step_rule, "velocities"):
+        D_additional_params = step_rule.velocities
+    else:
+        D_additional_params = OrderedDict()
+    if hasattr(step_rule, "D_kind"):
+        D_additional_kind = step_rule.D_kind
+    else:
+        D_additional_kind = {}
 
     # TODO : Make sure that these variables are indeed dictionaries and not lists.
     #        Remove this afterwards.

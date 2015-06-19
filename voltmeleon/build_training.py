@@ -35,8 +35,18 @@ def build_training(cg, error_rate, cost, step_rule,
         cost.name = "cost"
         cg = ComputationGraph(cost)
 
+
+    extra_variables_to_monitor = []
+    for W in VariableFilter(roles=[WEIGHT])(cg.variables):
+        e = T.abs_(W).mean()
+        e.name = W.name + "_absmean"
+        extra_variables_to_monitor.append(e)
+    
+
+
     train_set = H5PYDataset(dataset_hdf5_file, which_sets=('train',))
     valid_set = H5PYDataset(dataset_hdf5_file, which_sets=('valid',))
+    #valid_set = H5PYDataset(dataset_hdf5_file, which_sets=('test',))
     data_stream_train = DataStream.default_stream(
             train_set, iteration_scheme=ShuffledScheme(train_set.num_examples, batch_size))   
     data_stream_valid = DataStream.default_stream(
@@ -54,14 +64,14 @@ def build_training(cg, error_rate, cost, step_rule,
         variables=[cost, error_rate], data_stream=data_stream_valid, prefix="valid", every_n_batches=checkpoint_interval_nbr_batches)
 
     monitor_train = TrainingDataMonitoring(
-        variables=[cost, error_rate, minibatch_timestamp], prefix="train", every_n_batches=checkpoint_interval_nbr_batches)
+        variables=[cost, error_rate, minibatch_timestamp]+extra_variables_to_monitor, prefix="train", every_n_batches=checkpoint_interval_nbr_batches)
 
     extensions = [  monitor_valid,
                     monitor_train, 
                     FinishAfter(after_n_epochs=nbr_epochs),
-                    Printing(every_n_batches=checkpoint_interval_nbr_batches),
-                    minibatch_timestamp_extension
-                  ]
+                    Printing(every_n_batches=checkpoint_interval_nbr_batches)]
+                    #minibatch_timestamp_extension
+                  #]
 
     if server_sync_extension is not None:
         extensions.append(server_sync_extension)
@@ -73,6 +83,9 @@ def build_training(cg, error_rate, cost, step_rule,
 
     if saving_path is not None:
         print "WARNING : no saving is available right now"
+
+    for e in cg.parameters:
+        print e
 
     algorithm = GradientDescent(cost=cost, params=cg.parameters,
                                 step_rule=step_rule)

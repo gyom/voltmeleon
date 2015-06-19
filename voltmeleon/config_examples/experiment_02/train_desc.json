@@ -1,19 +1,18 @@
 {
-	"batch_size" : 256,
+	"batch_size" : 1024,
 	"nbr_epochs": 2,
-	"checkpoint_interval_nbr_batches" : 100,
+	"checkpoint_interval_nbr_batches" : 25,
 	"weight_decay_factor" : 0.001,
 
 	"step_flavor" : {"method" : "rmsprop",
-                     "learning_rate" : 0.0001,
+                     "learning_rate" : 0.001,
                    	 "decay_rate" : 0.99},
 
 	"dataset_hdf5_file" : "/home/dpln/data/SVHN/ninjite_h5/all_last_version.h5",
-	
 
-	"server" : {"hostname" : "127.0.0.1",
+	"server____" : {"hostname" : "127.0.0.1",
 				"port" : 7000,
-				"alpha" : 0.8	},
+				"alpha" : 0.0	},
 
 	"sync" : {	"want_read_only" : false,
 				"r" : 0.5,

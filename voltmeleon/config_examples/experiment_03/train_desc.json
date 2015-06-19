@@ -1,0 +1,21 @@
+{
+	"batch_size" : 512,
+	"nbr_epochs": 50,
+	"checkpoint_interval_nbr_batches" : 25,
+	"weight_decay_factor" : 0.000001,
+
+	"step_flavor" : {"method" : "momentum",
+                     "learning_rate" : 0.001,
+                   	 "momentum" : 0.99},
+
+	"dataset_hdf5_file__" : "/home/dpln/data/SVHN/ninjite_h5/all_last_version.h5",
+	"dataset_hdf5_file" : "/home/dpln/data/mnist.hdf5",
+
+	"server____" : {"hostname" : "127.0.0.1",
+				"port" : 7000,
+				"alpha" : 0.5	},
+
+	"sync" : {	"want_read_only" : false,
+				"r" : 0.5,
+				"momentum_weights_scaling" : 1.0}
+}

@@ -8,13 +8,13 @@ import numpy as np
 
 ####################################################
 # because "fuck you" .blocksrc with default_seed !
-#s0 = np.random.randint(low=0, high=100000)
-#s1 = np.random.randint(low=0, high=100000)
-#import blocks
-#import blocks.config
-#import fuel
-#blocks.config.config.default_seed = s0
-#fuel.config.default_seed = s1
+s0 = np.random.randint(low=0, high=100000)
+s1 = np.random.randint(low=0, high=100000)
+import blocks
+import blocks.config
+import fuel
+blocks.config.config.default_seed = s0
+fuel.config.default_seed = s1
 ####################################################
 
 
@@ -128,6 +128,10 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
                                                                     before_training=True, verbose=True,
                                                                     **sync_desc_override_with_read_only)
 
+    if client is None:
+        server_sync_initial_read_extension = None
+        server_sync_extension_auto_timing = None
+        print "WARNING : No client. Setting the sync extensions to be None."
 
     main_loop = build_training.build_training(cg, error_rate, cost, step_rule,
                                               weight_decay_factor=train_desc['weight_decay_factor'],

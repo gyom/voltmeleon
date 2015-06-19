@@ -140,7 +140,7 @@ class BasicMomentum_dict(StepRule):
         return step, updates
 
 
-class Momentum_dict(CompositeRule):
+class Momentum(CompositeRule):
     """Accumulates step with exponential discount.
     Combines :class:`BasicMomentum` and :class:`Scale` to form the
     usual momentum step rule.

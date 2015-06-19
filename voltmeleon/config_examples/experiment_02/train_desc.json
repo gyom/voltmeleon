@@ -17,5 +17,5 @@
 
 	"sync" : {	"want_read_only" : false,
 				"r" : 0.5,
-				"momentum_weights_scaling" : 0.5}
+				"momentum_weights_scaling" : 1.0}
 }

@@ -51,10 +51,10 @@ def build_training(cg, error_rate, cost, step_rule,
     minibatch_timestamp_extension = SharedVariableModifier(minibatch_timestamp, update_minibatch_timestamp)
 
     monitor_valid = DataStreamMonitoring(
-        variables=[cost], data_stream=data_stream_valid, prefix="valid", every_n_batches=checkpoint_interval_nbr_batches)
+        variables=[cost, error_rate], data_stream=data_stream_valid, prefix="valid", every_n_batches=checkpoint_interval_nbr_batches)
 
     monitor_train = TrainingDataMonitoring(
-        variables=[cost, minibatch_timestamp], prefix="train", every_n_batches=checkpoint_interval_nbr_batches)
+        variables=[cost, error_rate, minibatch_timestamp], prefix="train", every_n_batches=checkpoint_interval_nbr_batches)
 
     extensions = [  monitor_valid,
                     monitor_train, 

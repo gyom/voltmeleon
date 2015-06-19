@@ -1,7 +1,7 @@
 {
 	"batch_size" : 256,
 	"nbr_epochs": 2,
-	"checkpoint_interval_nbr_batches" : 1,
+	"checkpoint_interval_nbr_batches" : 100,
 	"weight_decay_factor" : 0.001,
 
 	"step_flavor" : {"method" : "rmsprop",
@@ -17,5 +17,5 @@
 
 	"sync" : {	"want_read_only" : false,
 				"r" : 0.5,
-				"momentum_weights_scaling" : 0.0}
+				"momentum_weights_scaling" : 1.0}
 }

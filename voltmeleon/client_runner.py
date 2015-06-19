@@ -57,6 +57,11 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
     D_params = dict(D_params.items() + D_additional_params.items())
     D_kind = dict(D_kind.items() + D_additional_kind.items())
 
+    print "======================"
+    for (name, param_var) in sorted(D_params.items(), key=lambda e:e[0]):
+        print "    %s has shape %s" % (name, param_var.get_value(borrow=True, return_internal_type=True).shape)
+    print ""
+
     if output_server_params_desc_path is not None:
         L_server_params_desc = build_model.get_model_desc_for_server(D_params, D_kind)
         json.dump(L_server_params_desc, open(output_server_params_desc_path, "w"))

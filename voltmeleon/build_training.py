@@ -16,6 +16,7 @@ from blocks.main_loop import MainLoop
 from blocks.roles import WEIGHT
 from fuel.datasets.hdf5 import H5PYDataset
 from blocks.utils import shared_floatx
+from schemes import LimitedScheme
 floatX = theano.config.floatX
 import os
 import time
@@ -44,14 +45,13 @@ def build_training(cg, error_rate, cost, step_rule,
         extra_variables_to_monitor.append(e)
     
 
-
     train_set = H5PYDataset(dataset_hdf5_file, which_sets=('train',))
     valid_set = H5PYDataset(dataset_hdf5_file, which_sets=('valid',))
     #valid_set = H5PYDataset(dataset_hdf5_file, which_sets=('test',))
     data_stream_train = DataStream.default_stream(
             train_set, iteration_scheme=ShuffledScheme(train_set.num_examples, batch_size))   
     data_stream_valid = DataStream.default_stream(
-            train_set, iteration_scheme=SequentialScheme(valid_set.num_examples, batch_size))
+            train_set, iteration_scheme=LimitedScheme(ShuffledScheme(valid_set.num_examples, batch_size), 1))
 
     timestamp_start_of_experiment = time.time()
     minibatch_timestamp = shared_floatx(np.array([0.0, timestamp_start_of_experiment], dtype=floatX))

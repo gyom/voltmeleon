@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
 import numpy
 from picklable_itertools import iter_
+from six import add_metaclass
+from fuel.schemes import IterationScheme
 
 @add_metaclass(ABCMeta)
 class LimitedScheme(IterationScheme):

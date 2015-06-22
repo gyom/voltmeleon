@@ -7,7 +7,8 @@ from blocks.graph import ComputationGraph
 from blocks.filter import VariableFilter
 from blocks.extensions import FinishAfter, Printing
 from blocks.extensions.monitoring import DataStreamMonitoring, TrainingDataMonitoring
-from blocks.extensions.training import SharedVariableModifier, Checkpoint
+from blocks.extensions.training import SharedVariableModifier
+from blocks.extensions.saveload import Checkpoint
 from blocks.model import Model
 from fuel.streams import DataStream
 from fuel.schemes import SequentialScheme, ShuffledScheme
@@ -82,9 +83,10 @@ def build_training(cg, error_rate, cost, step_rule,
         print "WARNING : You are not using an extension to read the parameters from the server."
 
     if saving_path is not None:
-        assert isinstance(saving_path, str)
-        assert os.path.isdir(os.path.dirname(saving_path)), "The directory for saving_path (%s) does not exist." % saving_path
-        extensions.append(Checkpoint(path=saving_path))
+        print "WARNING : Checkpoint not supported yet."
+        #assert isinstance(saving_path, str)
+        #assert os.path.isdir(os.path.dirname(saving_path)), "The directory for saving_path (%s) does not exist." % saving_path
+        #extensions.append(Checkpoint(path=saving_path, every_n_batches=checkpoint_interval_nbr_batches))
 
 
     algorithm = GradientDescent(cost=cost, params=cg.parameters,

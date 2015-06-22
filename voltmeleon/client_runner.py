@@ -77,24 +77,24 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
     client = None
     if server_desc is not None:
 
-        if not server_desc.has_key('server'):
-            server_desc['server'] = "127.0.0.1"
-            assert server_desc.has_key('port')
+        if not server_desc.has_key('hostname'):
+            server_desc['hostname'] = "127.0.0.1"
 
-            assert server_desc.has_key('alpha')
-            if not server_desc.has_key('beta'):
-                server_desc['beta'] = 1.0 - server_desc['alpha']
+        assert server_desc.has_key('port')
 
+        assert server_desc.has_key('alpha')
+        if not server_desc.has_key('beta'):
+            server_desc['beta'] = 1.0 - server_desc['alpha']
 
-                print "(server, port, alpha, beta)"
-                print (server_desc['server'], server_desc['port'], server_desc['alpha'], server_desc['beta'])
-                client = ClientCNNAutoSplitter.new_basic_alpha_beta(server_desc['server'],
-                    server_desc['port'],
-                    server_desc['alpha'],
-                    server_desc['beta'])
+            print "(server, port, alpha, beta)"
+            print (server_desc['hostname'], server_desc['port'], server_desc['alpha'], server_desc['beta'])
+            client = ClientCNNAutoSplitter.new_basic_alpha_beta(server_desc['hostname'],
+                                                                server_desc['port'],
+                                                                server_desc['alpha'],
+                                                                server_desc['beta'])
 
-                client.connect()
-                print client.read_param_desc_from_server()
+            client.connect()
+            print client.read_param_desc_from_server()
 
         # Note that we don't need to get the parameters here.
         # We use the `server_sync_initial_read_extension` to do this job.

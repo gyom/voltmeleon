@@ -88,7 +88,6 @@ def build_training(cg, error_rate, cost, step_rule,
         assert os.path.isdir(os.path.dirname(saving_path)), "The directory for saving_path (%s) does not exist." % saving_path
         extensions.append(Checkpoint(path=saving_path, every_n_batches=checkpoint_interval_nbr_batches))
 
-
     algorithm = GradientDescent(cost=cost, params=cg.parameters,
                                 step_rule=step_rule)
 

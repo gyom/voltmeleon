@@ -35,6 +35,12 @@ from server_sync_extensions import ServerSyncAutoAdjustTiming
 import build_model
 import build_training
 
+def set_all_dropout_in_model_desc_to_zero(model_desc):
+    # note that this destroys the information in model_desc
+    for key in ["L_exo_dropout_conv_layers", "L_exo_dropout_full_layers"]:
+        if model_desc.has_key(key):
+            model_desc[key] = [0.0] * len(model_desc[key])
+
 
 def run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=None):
 
@@ -44,6 +50,12 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
     # after writing out the json file that the server will need.
     # Conceptually, one can run this before the experiment, in order to obtain the
     # file to be used for the server. Then we launch the server and we run the thing for real.
+
+
+    if output_server_params_desc_path is not None:
+        # we need to replace all the exo dropout values in order to generate the json file for the server config
+        set_all_dropout_in_model_desc_to_zero(model_desc)
+        print "Setting all the exo dropout values in order to generate the json file for the server config."
 
     (cg, error_rate, cost, D_params, D_kind) = build_model.build_submodel(**model_desc)
 

@@ -23,7 +23,16 @@ def run(experiment_dir, output_server_params_desc_path=None):
     model_desc = json.load(open(model_desc_file, "r"))
     train_desc = json.load(open(train_desc_file, "r"))
     # hardcoded path for blocks saving a zip file
-    saving_path = os.path.join(experiment_dir, "log.zip")
+
+    assert os.path.exists(experiment_dir)
+    n = 0
+    while True:
+        saving_path = os.path.join(experiment_dir, "log_%0.2d.zip" % n)
+        n += 1
+        if not os.path.exists(saving_path):
+            break
+            
+
 
     client_runner.run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=output_server_params_desc_path)
 

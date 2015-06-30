@@ -16,6 +16,7 @@ from blocks.main_loop import MainLoop
 from blocks.roles import WEIGHT
 from fuel.datasets.hdf5 import H5PYDataset
 from blocks.utils import shared_floatx
+from schemes import LimitedScheme
 floatX = theano.config.floatX
 import os
 import time
@@ -44,14 +45,13 @@ def build_training(cg, error_rate, cost, step_rule,
         extra_variables_to_monitor.append(e)
     
 
-
     train_set = H5PYDataset(dataset_hdf5_file, which_sets=('train',))
     valid_set = H5PYDataset(dataset_hdf5_file, which_sets=('valid',))
     #valid_set = H5PYDataset(dataset_hdf5_file, which_sets=('test',))
     data_stream_train = DataStream.default_stream(
             train_set, iteration_scheme=ShuffledScheme(train_set.num_examples, batch_size))   
     data_stream_valid = DataStream.default_stream(
-            train_set, iteration_scheme=SequentialScheme(valid_set.num_examples, batch_size))
+            train_set, iteration_scheme=LimitedScheme(ShuffledScheme(valid_set.num_examples, batch_size), 1))
 
     # TODO : Rethink whether you want this or not.
     #timestamp_start_of_experiment = time.time()
@@ -85,8 +85,8 @@ def build_training(cg, error_rate, cost, step_rule,
         #print "WARNING : Checkpoint not supported yet."
         assert isinstance(saving_path, str)
         assert os.path.isdir(os.path.dirname(saving_path)), "The directory for saving_path (%s) does not exist." % saving_path
-        extensions.append(Checkpoint(path=saving_path, every_n_batches=checkpoint_interval_nbr_batches))
-
+        extensions.append(Checkpoint(path=saving_path, use_cpickle=True, save_separately=['log'],
+                          every_n_batches=checkpoint_interval_nbr_batches))
 
     algorithm = GradientDescent(cost=cost, params=cg.parameters,
                                 step_rule=step_rule)

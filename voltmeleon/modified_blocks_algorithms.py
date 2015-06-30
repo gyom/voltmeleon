@@ -334,3 +334,13 @@ class AdaDelta(StepRule):
                    (mean_square_delta_x_tm1, mean_square_delta_x_t)]
         return step, updates
 
+
+class NoUpdates(StepRule):
+    """
+    This is a trivial implementation of the step rule that does NOTHING.
+    This can be used when you do not want to perform backpropagation.
+    """
+    def compute_step(self, param, previous_step):
+        step = T.zeros_like(param)
+        updates = []
+        return step, updates

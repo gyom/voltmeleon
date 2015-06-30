@@ -53,13 +53,14 @@ def build_training(cg, error_rate, cost, step_rule,
     data_stream_valid = DataStream.default_stream(
             train_set, iteration_scheme=SequentialScheme(valid_set.num_examples, batch_size))
 
-    timestamp_start_of_experiment = time.time()
-    minibatch_timestamp = shared_floatx(np.array([0.0, timestamp_start_of_experiment], dtype=floatX))
-    minibatch_timestamp.name = "minibatch_timestamp"
-    def update_minibatch_timestamp(_, old_value):
-        now = time.time()
-        return np.array([now-timestamp_start_of_experiment, now], dtype=floatX)
-    minibatch_timestamp_extension = SharedVariableModifier(minibatch_timestamp, update_minibatch_timestamp)
+    # TODO : Rethink whether you want this or not.
+    #timestamp_start_of_experiment = time.time()
+    #minibatch_timestamp = shared_floatx(np.array([0.0, timestamp_start_of_experiment], dtype=floatX))
+    #minibatch_timestamp.name = "minibatch_timestamp"
+    #def update_minibatch_timestamp(_, old_value):
+    #    now = time.time()
+    #    return np.array([now-timestamp_start_of_experiment, now], dtype=floatX)
+    #minibatch_timestamp_extension = SharedVariableModifier(minibatch_timestamp, update_minibatch_timestamp)
 
     monitor_valid = DataStreamMonitoring(
         variables=[cost, error_rate], data_stream=data_stream_valid, prefix="valid", every_n_batches=checkpoint_interval_nbr_batches)
@@ -71,8 +72,6 @@ def build_training(cg, error_rate, cost, step_rule,
                     monitor_train, 
                     FinishAfter(after_n_epochs=nbr_epochs),
                     Printing(every_n_batches=checkpoint_interval_nbr_batches)]
-                    #minibatch_timestamp_extension
-                  #]
 
     if server_sync_extension is not None:
         extensions.append(server_sync_extension)

@@ -274,7 +274,6 @@ def build_submodel(input_shape,
 
 def build_step_rule_parameters(step_flavor, D_params, D_kind):
 
-    # TO DO
     if step_flavor['method'].lower() == "rmsprop":
         assert 0.0 <= step_flavor['learning_rate']
         assert 0.0 <= step_flavor['decay_rate']
@@ -323,12 +322,13 @@ def build_step_rule_parameters(step_flavor, D_params, D_kind):
         assert 0.0 <= step_flavor['momentum']
         assert step_flavor['momentum'] <= 1.0
 
-        #step_rule = optimisation_rule.Momentum(D_params=D_params, D_kind=D_kind,
-        #                                       learning_rate=step_flavor['learning_rate'],
-        #                                       momentum=step_flavor['momentum'])
-        step_rule = blocks.algorithms.Momentum(learning_rate=step_flavor['learning_rate'], momentum=step_flavor['momentum'])
+        step_rule = optimisation_rule.Momentum(D_params=D_params, D_kind=D_kind,
+                                               learning_rate=step_flavor['learning_rate'],
+                                               momentum=step_flavor['momentum'])
+        #step_rule = blocks.algorithms.Momentum(learning_rate=step_flavor['learning_rate'], momentum=step_flavor['momentum'])
         
-
+    elif step_flavor['method'].lower() == "noupdates":
+        step_rule = optimisation_rule.NoUpdates()
     else:
         raise Error("Unrecognized step flavor method : " + step_flavor['method'])
 

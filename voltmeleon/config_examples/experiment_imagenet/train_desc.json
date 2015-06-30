@@ -1,0 +1,27 @@
+{
+	"batch_size" : 1024,
+	"nbr_epochs": 50,
+	"weight_decay_factor" : 0.00001,
+
+    "checkpoint" : {"want_save_model_best_valid_model" : true,
+                    "monitor_interval_nbr_batches" : 100}
+
+	"step_flavor" : {"method" : "rmsprop",
+                     "learning_rate" : 0.0001,
+                   	 "decay_rate" : 0.999},
+
+    "dataset" : {"hdf5_file" : "/data/lisatmp3/ducoffem/bis/ilsvrc2010_old.hdf5",
+                 "want_subset_valid" : true,
+                 "want_eval_on_valid" : true,
+                 "want_eval_on_test" : false,
+                 "want_subset_test" : false},
+
+	"server" : {"hostname" : "127.0.0.1",
+				"port" : 7000,
+				"alpha" : 0.5	},
+
+	"sync" : {	"want_read_only" : false,
+				"r" : 0.5,
+				"observer_mode" : true}
+}
+

@@ -14,5 +14,6 @@
 
 	"sync" : {	"want_read_only" : true,
 			"r" : 1.0,
-			"want_undropout" : true}
+			"want_undo_exo_dropout" : true,
+                        "want_ignore_endo_dropout" : true}
 }

@@ -242,10 +242,7 @@ def build_submodel(input_shape,
     # test computation graph
     
 
-    # TO DO : weight decay factor in the second json file !!!
-
     cg = ComputationGraph(cost)
-
 
     # DROPOUT
     L_endo_dropout = L_endo_dropout_conv_layers + L_endo_dropout_full_layers
@@ -253,17 +250,17 @@ def build_submodel(input_shape,
     cg_dropout = cg
     inputs = VariableFilter(roles=[INPUT])(cg.variables)
 
-    print inputs
-
-    # TODO : print inputs to check
     for (index, drop_rate) in enumerate(L_endo_dropout):
-        
         for input_ in inputs:
             m = re.match(r"layer_(\d+)_apply.*", input_.name)
             if m and index == int(m.group(1)):
-                cg_dropout = apply_dropout(cg, [input_], drop_rate)
-                print "Applied dropout %f on %s." % (drop_rate, input_.name)
-                break
+                if drop_rate < 0.0001:
+                    print "Skipped applying dropout on %s because the dropout rate was under 0.0001." % input_.name
+                    break
+                else:
+                    cg_dropout = apply_dropout(cg, [input_], drop_rate)
+                    print "Applied dropout %f on %s." % (drop_rate, input_.name)
+                    break
 
 
     cg = cg_dropout

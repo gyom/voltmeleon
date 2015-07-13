@@ -50,8 +50,12 @@ def build_training(cg, error_rate, cost, step_rule,
     #valid_set = H5PYDataset(dataset_hdf5_file, which_sets=('test',))
     data_stream_train = DataStream.default_stream(
             train_set, iteration_scheme=ShuffledScheme(train_set.num_examples, batch_size))   
+    # DEBUG : This was using `train_set` for both `data_stream_train` and `data_stream_valid`. Was it a copy/paste bug ?
     data_stream_valid = DataStream.default_stream(
-            train_set, iteration_scheme=LimitedScheme(ShuffledScheme(valid_set.num_examples, batch_size), 1))
+            valid_set, iteration_scheme=LimitedScheme(ShuffledScheme(valid_set.num_examples, batch_size), 1))
+    
+    data_stream_complete_train = DataStream.default_stream(train_set, iteration_scheme=SequentialScheme(train_set.num_examples, batch_size))
+    data_stream_complete_valid = DataStream.default_stream(valid_set, iteration_scheme=SequentialScheme(valid_set.num_examples, batch_size))
 
     # TODO : Rethink whether you want this or not.
     #timestamp_start_of_experiment = time.time()
@@ -62,13 +66,22 @@ def build_training(cg, error_rate, cost, step_rule,
     #    return np.array([now-timestamp_start_of_experiment, now], dtype=floatX)
     #minibatch_timestamp_extension = SharedVariableModifier(minibatch_timestamp, update_minibatch_timestamp)
 
+    monitor_train = TrainingDataMonitoring(
+        variables=[cost, error_rate]+extra_variables_to_monitor, prefix="train", every_n_batches=checkpoint_interval_nbr_batches)
     monitor_valid = DataStreamMonitoring(
         variables=[cost, error_rate], data_stream=data_stream_valid, prefix="valid", every_n_batches=checkpoint_interval_nbr_batches)
 
-    monitor_train = TrainingDataMonitoring(
-        variables=[cost, error_rate, minibatch_timestamp]+extra_variables_to_monitor, prefix="train", every_n_batches=checkpoint_interval_nbr_batches)
 
-    extensions = [  monitor_valid,
+    monitor_complete_train = DataStreamMonitoring(
+        variables=[cost, error_rate], data_stream=data_stream_complete_train, prefix="train", every_n_batches=checkpoint_interval_nbr_batches)
+    monitor_complete_valid = DataStreamMonitoring(
+        variables=[cost, error_rate], data_stream=data_stream_complete_valid, prefix="valid", every_n_batches=checkpoint_interval_nbr_batches)
+
+
+
+    extensions = [  monitor_complete_train,
+                    monitor_complete_valid,
+                    monitor_valid,
                     monitor_train, 
                     FinishAfter(after_n_epochs=nbr_epochs),
                     Printing(every_n_batches=checkpoint_interval_nbr_batches)]

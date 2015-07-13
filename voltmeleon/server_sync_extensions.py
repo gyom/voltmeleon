@@ -1,5 +1,6 @@
 
 import time
+import numpy as np
 
 from common_tools import (set_param_value_shared_var, get_param_value_shared_var)
 #from architecture import (set_param_value_shared_var, return_param)
@@ -30,10 +31,13 @@ class ServerUpdateAfterTBatches_Full(SimpleExtension):
                 param_value = self.client.pull_split_param(name)
                 set_param_value_shared_var(self.D_params, name, param_value)
 
-# this is the current implementation
+# This is the current implementation, but it's not used
+# because we use the `ServerSyncAutoAdjustTiming` instead.
+# It's still there because it provides an implementation that's
+# easier to read for the purposes of understanding.
 class ServerUpdateAfterTBatches(SimpleExtension):
 
-    def __init__(self, client, D_dropout_probs, D_params, T, **kwargs):
+    def __init__(self, client, D_dropout_probs, D_params, T, D_rescale_factor_exo_dropout = {}, **kwargs):
         # `D_params` contains both the parameters and the momentums
         super(ServerUpdateAfterTBatches, self).__init__(every_n_batches=T, **kwargs)
 
@@ -42,14 +46,20 @@ class ServerUpdateAfterTBatches(SimpleExtension):
         self.D_params = D_params
         self.T = T
 
+        # Refer to comment down below in the implementation of `ServerSyncAutoAdjustTiming`.
+        self.D_rescale_factor_exo_dropout = D_rescale_factor_exo_dropout
+
     def do(self, which_callback, *args):
         if which_callback:
+
             for (name, param_var) in D_params.items():
-                param_value = param_var.get_value()
+                param_value = param_var.get_value() / np.float32(self.D_rescale_factor_exo_dropout.get(name, 1.0))
                 self.client.push_split_param(name, param_value)
+
             self.client.perform_split(self.D_dropout_probs)
+
             for (name, param_var) in D_params.items():
-                param_value = self.client.pull_split_param(name)
+                param_value = self.client.pull_split_param(name) * np.float32(self.D_rescale_factor_exo_dropout.get(name, 1.0))
                 shape = param_var.get_value(borrow=True, return_internal_type=True).shape
                 param_var.set_value(param_value.reshape(shape))
 
@@ -61,7 +71,8 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
     # or something to that effect to determine how often we want to call it
 
     def __init__(self, client, D_dropout_probs, D_params,
-        want_read_only=False, r=0.25,
+        want_read_only=False, max_time_ratio_spent=0.25,
+        D_rescale_factor_exo_dropout = {},
         verbose=False, **kwargs):
         # `D_params` contains both the parameters and the momentums
         super(ServerSyncAutoAdjustTiming, self).__init__(**kwargs)
@@ -77,15 +88,23 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
         # `want_read_only` is True if we want to skip sending updates to the server
         self.want_read_only = want_read_only
 
-        # `r` is the "target_max_ratio_time_spent_synching", and it is set to something less than 1.0
+        # `max_time_ratio_spent` is the target max ratio time spent synching,
+        # and it is set to something less than 1.0
         # if we want to automatically skip updates when those updates would bring the
         # ratio of {time spent communicating with the server / total time} too high.
         # We can't spend more than 100% of our time communicating, so 1.0 is the default
         # value to turn this option off.
-        self.r = r
+        self.max_time_ratio_spent = max_time_ratio_spent
 
 
-        # TODO : Add argument to scale weights to compensate for dropout.
+        # Note that `D_rescale_factor_exo_dropout` contains factors
+        # by which we will rescale the corresponding parameters after
+        # they are read. When committing the values back to the server,
+        # we divide by those factors, but in general the clients that
+        # use the `D_rescale_factor_exo_dropout` are "observers" that
+        # don't write back anything to the server.
+        self.D_rescale_factor_exo_dropout = D_rescale_factor_exo_dropout
+
 
 
         ### Private members that are not arguments ###
@@ -113,7 +132,7 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
                 time_elapsed = time.time() - self.timestamp_previous_update
                 assert self.rolling_estimate_sync_cost is not None
 
-                if self.rolling_estimate_sync_cost < self.r * time_elapsed:
+                if self.rolling_estimate_sync_cost < self.max_time_ratio_spent * time_elapsed:
                     want_sync = True
                 else:
                     want_sync = False
@@ -129,7 +148,7 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
                     # Write all the parameters.
                     if self.client is not None:
                         for (name, param_var) in self.D_params.items():
-                            param_value = param_var.get_value()
+                            param_value = param_var.get_value() / np.float32(self.D_rescale_factor_exo_dropout.get(name, 1.0))
                             self.client.push_split_param(name, param_value)
                         if self.verbose:
                             print "Client pushing parameters to server."
@@ -145,7 +164,7 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
                     self.client.perform_split(self.D_dropout_probs)
 
                     for (name, param_var) in self.D_params.items():
-                        param_value = self.client.pull_split_param(name)
+                        param_value = self.client.pull_split_param(name) * np.float32(self.D_rescale_factor_exo_dropout.get(name, 1.0))
                         shape = param_var.get_value(borrow=True, return_internal_type=True).shape
                         
                         if False:

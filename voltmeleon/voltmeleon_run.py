@@ -9,15 +9,22 @@ import client_runner
 
 def usage():
     print "THEANO_FLAGS=device=gpu0,floatX=float32 python voltmeleon_run.py --experiment_dir=/home/gyomalin/NIPS/experiments/experiment_dir_1 --output_server_params_desc_path=server_params_desc.json"
-    print "python voltmeleon_run.py --experiment_dir=config_examples/experiment_01"
+    print "python voltmeleon_run.py --experiment_dir=config_examples/experiment_04 --obs"
 
 
-def run(experiment_dir, output_server_params_desc_path=None):
+def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=False):
 
     assert os.path.exists(experiment_dir), "Cannot find experiment_dir : %s" % experiment_dir
 
     model_desc_file = os.path.join(experiment_dir, "model_desc.json")
-    train_desc_file = os.path.join(experiment_dir, "train_desc.json")
+
+    # The "oserver mode" is a special case in which we use the file "observer_desc.json"
+    # instead of the usual "train_desc.json". This should save us a lot of trouble in
+    # managing configuration files.
+    if want_observer_mode:
+        train_desc_file = os.path.join(experiment_dir, "observer_desc.json")
+    else:
+        train_desc_file = os.path.join(experiment_dir, "train_desc.json")
 
     import json
     model_desc = json.load(open(model_desc_file, "r"))
@@ -42,7 +49,7 @@ def main(argv):
     """
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hv", ["experiment_dir=", "output_server_params_desc_path="])
+        opts, args = getopt.getopt(sys.argv[1:], "hv", ["experiment_dir=", "output_server_params_desc_path=", "obs", "want_observer_mode"])
 
     except getopt.GetoptError as err:
         # print help information and exit:
@@ -52,6 +59,7 @@ def main(argv):
 
     experiment_dir = None
     output_server_params_desc_path = None
+    want_observer_mode = False
 
     verbose = False
     for o, a in opts:
@@ -64,11 +72,13 @@ def main(argv):
             experiment_dir = a
         elif o in ("--output_server_params_desc_path"):
             output_server_params_desc_path = a
+        elif o in ("--obs", "--want_observer_mode"):
+            want_observer_mode = True
         else:
             assert False, "unhandled option"
 
 
-    run(experiment_dir, output_server_params_desc_path=output_server_params_desc_path)
+    run(experiment_dir, output_server_params_desc_path=output_server_params_desc_path, want_observer_mode=want_observer_mode)
 
 
 

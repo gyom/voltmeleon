@@ -35,7 +35,7 @@ from server_sync_extensions import ServerSyncAutoAdjustTiming
 import build_model
 import build_training
 
-def set_all_dropout_in_model_desc_to_zero(model_desc):
+def set_all_exo_dropout_in_model_desc_to_zero(model_desc):
     # note that this destroys the information in model_desc
     for key in ["L_exo_dropout_conv_layers", "L_exo_dropout_full_layers"]:
         if model_desc.has_key(key):
@@ -66,9 +66,7 @@ def build_model_adjusting_for_potential_undo_exo_dropout(model_desc, want_undo_e
         # building a model with the exo dropout active just to see what the shapes will be
         (_, _, _, D_params_dropped, _) = build_model.build_submodel(**model_desc)
 
-        for k in ["L_exo_dropout_conv_layers", "L_exo_dropout_full_layers"]:
-            if model_desc.has_key(k):
-                model_desc[k] = [0.0] * len(model_desc[k])
+        set_all_exo_dropout_in_model_desc_to_zero(model_desc)
     
         # this is the actual built model that we are going to use
         (cg, error_rate, cost, D_params, D_kind) = build_model.build_submodel(**model_desc)
@@ -125,7 +123,7 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
 
     if output_server_params_desc_path is not None:
         # we need to replace all the exo dropout values in order to generate the json file for the server config
-        set_all_dropout_in_model_desc_to_zero(model_desc)
+        set_all_exo_dropout_in_model_desc_to_zero(model_desc)
         print "Setting all the exo dropout values in order to generate the json file for the server config."
 
 
@@ -146,6 +144,12 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
     # key that is set to `True`. If such is the case, we'll just
     # mutate the values found in `model_desc` to set them to 0.0
     # to achieve the desired effect.
+    #
+    # We don't have to scale the parameters to compensate for anything
+    # due to the way that dropout is implemented in Blocks.
+    # The implementation is such that the parameters are set to their
+    # proper values that they would have if we ignored the endo dropout,
+    # so we don't have to compute the equivalent of the `D_rescale_factor_exo_dropout`.
     if want_ignore_endo_dropout:
         print "Overriding ENDO dropout as requested by the train_desc."
         for k in ["L_endo_dropout_conv_layers", "L_endo_dropout_full_layers"]:
@@ -159,8 +163,8 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
      L_exo_dropout,
      D_dropout_probs, D_rescale_factor_exo_dropout) = build_model_adjusting_for_potential_undo_exo_dropout(model_desc, want_undo_exo_dropout)
 
-
-
+    # This `D_rescale_factor_exo_dropout` will be used for the blocks extensions.
+    # The rest of the returned arguments will be used to setup the other parts of the training.
 
 
     build_model.build_step_rule_parameters(train_desc['step_flavor'], D_params, D_kind)
@@ -213,15 +217,35 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
         # Note that we don't need to get the parameters here.
         # We use the `server_sync_initial_read_extension` to do this job.
     
+
+               
+
     sync_desc = train_desc['sync']
+    # At this point we strip away the keys in `sync_desc` that
+    # are not used by the extensions.
+    # This is not a great practice to do, but
+    # we're already aware that the is a bit of a conceptual
+    # mismatch in our choice of having those keys in `sync_desc`
+    # alongside the arguments to the extensions themselves.
+    for key in ['want_undo_exo_dropout',
+                'want_ignore_endo_dropout']:
+        if sync_desc.has_key(key):
+            del sync_desc[key]
+
     for key in sync_desc:
-        assert key in ['want_read_only', 'r', 'momentum_weights_scaling']
+        assert key in [ 'want_read_only',
+                        'max_time_ratio_spent',
+                        'momentum_weights_scaling'], "Unrecognized key : %s" % key
+
+    if sync_desc.has_key('r'):
+        print "The 'r' value in the 'sync' dictionary is now called 'max_time_ratio_spent'."
+        print "Change your configuration file to reflect this."
+        print "Exiting."
+        exit()
 
     # Run extension at every iteration, but that doesn't mean that we're updating at every iteration.
     # It just means that we'll consider updating if the timing is good (in order to respect the
-    # ratio `r` of time spend synching vs total).
-
-
+    # ratio `max_time_ratio_spent` of time spend synching vs total).
 
     server_sync_extension_auto_timing = ServerSyncAutoAdjustTiming( client, D_dropout_probs,
                                                                     D_params,

@@ -326,6 +326,7 @@ def build_step_rule_parameters(step_flavor, D_params, D_kind):
         
     elif step_flavor['method'].lower() == "noupdates":
         step_rule = optimisation_rule.NoUpdates()
+        print "Using NoUpdates optimisation rule. The parameters will not change."
     else:
         raise Error("Unrecognized step flavor method : " + step_flavor['method'])
 

@@ -15,6 +15,7 @@
 				"alpha" : 0.5	},
 
 	"sync" : {	"want_read_only" : false,
-				"r" : 0.5,
+				"max_time_ratio_spent" : 0.5,
 				"momentum_weights_scaling" : 1.0}
+
 }

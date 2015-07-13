@@ -61,7 +61,7 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
     # or something to that effect to determine how often we want to call it
 
     def __init__(self, client, D_dropout_probs, D_params,
-        want_read_only=False, r=0.25, momentum_weights_scaling=1.0,
+        want_read_only=False, r=0.25,
         verbose=False, **kwargs):
         # `D_params` contains both the parameters and the momentums
         super(ServerSyncAutoAdjustTiming, self).__init__(**kwargs)

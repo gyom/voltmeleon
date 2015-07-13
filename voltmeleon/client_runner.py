@@ -42,21 +42,8 @@ def set_all_dropout_in_model_desc_to_zero(model_desc):
             model_desc[key] = [0.0] * len(model_desc[key])
 
 
-def run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=None):
 
-    # it's okay to not use the `experiment_dir` argument directly, for now
-
-    # If `output_server_params_desc_path` is used, then this function will terminate early
-    # after writing out the json file that the server will need.
-    # Conceptually, one can run this before the experiment, in order to obtain the
-    # file to be used for the server. Then we launch the server and we run the thing for real.
-
-
-    if output_server_params_desc_path is not None:
-        # we need to replace all the exo dropout values in order to generate the json file for the server config
-        set_all_dropout_in_model_desc_to_zero(model_desc)
-        print "Setting all the exo dropout values in order to generate the json file for the server config."
-
+def build_model_adjusting_for_potential_undo_exo_dropout(model_desc, want_undo_exo_dropout):
 
     def exo_dropout_helper(model_desc):
         # Add a 0.0 at the end because we keep all the outputs, and that's not a number
@@ -67,31 +54,14 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
         return L_exo_dropout, D_dropout_probs
 
 
-    want_ignore_endo_dropout = (train_desc.has_key('sync') and
-                                train_desc['sync'].has_key('want_ignore_endo_dropout') and
-                                train_desc['sync']['want_ignore_endo_dropout'] == True)
-
-    want_undo_exo_dropout = (train_desc.has_key('sync') and
-                             train_desc['sync'].has_key('want_undo_exo_dropout') and
-                             train_desc['sync']['want_undo_exo_dropout'] == True)
-
-    # When we're running the client in "observer" mode,
-    # we want to get rid of the exo and the endo dropout.
-    #
-    # There are multiple ways to go about doing this, but
-    # for the endo dropout we'll just check if the 'sync'
-    # component of `train_desc` has a 'want_ignore_endo_dropout'
-    # key that is set to `True`. If such is the case, we'll just
-    # mutate the values found in `model_desc` to set them to 0.0
-    # to achieve the desired effect.
-    if want_ignore_endo_dropout:
-        print "Overriding ENDO dropout as requested by the train_desc."
-        for k in ["L_endo_dropout_conv_layers", "L_endo_dropout_full_layers"]:
-            if model_desc.has_key(k):
-                model_desc[k] = [0.0] * len(model_desc[k])
-
     if want_undo_exo_dropout:
         print "Overriding EXO dropout as requested by the train_desc."
+
+        # This is a more complicated operation because it requires us
+        # to compensate for what the model with exo dropout would do.
+        # The shortest way to do this is to build a first model WITH the exo dropout,
+        # and then build the real one WITHOUT exo dropout afterwards.
+
 
         # building a model with the exo dropout active just to see what the shapes will be
         (_, _, _, D_params_dropped, _) = build_model.build_submodel(**model_desc)
@@ -134,6 +104,61 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
         D_rescale_factor_exo_dropout = {}
 
         (cg, error_rate, cost, D_params, D_kind) = build_model.build_submodel(**model_desc)
+
+
+    return (cg, error_rate, cost,
+            D_params, D_kind,
+            L_exo_dropout,
+            D_dropout_probs, D_rescale_factor_exo_dropout)
+
+
+
+def run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=None):
+
+    # it's okay to not use the `experiment_dir` argument directly, for now
+
+    # If `output_server_params_desc_path` is used, then this function will terminate early
+    # after writing out the json file that the server will need.
+    # Conceptually, one can run this before the experiment, in order to obtain the
+    # file to be used for the server. Then we launch the server and we run the thing for real.
+
+
+    if output_server_params_desc_path is not None:
+        # we need to replace all the exo dropout values in order to generate the json file for the server config
+        set_all_dropout_in_model_desc_to_zero(model_desc)
+        print "Setting all the exo dropout values in order to generate the json file for the server config."
+
+
+    want_ignore_endo_dropout = (train_desc.has_key('sync') and
+                                train_desc['sync'].has_key('want_ignore_endo_dropout') and
+                                train_desc['sync']['want_ignore_endo_dropout'] == True)
+
+    want_undo_exo_dropout = (train_desc.has_key('sync') and
+                             train_desc['sync'].has_key('want_undo_exo_dropout') and
+                             train_desc['sync']['want_undo_exo_dropout'] == True)
+
+    # When we're running the client in "observer" mode,
+    # we want to get rid of the exo and the endo dropout.
+    #
+    # There are multiple ways to go about doing this, but
+    # for the endo dropout we'll just check if the 'sync'
+    # component of `train_desc` has a 'want_ignore_endo_dropout'
+    # key that is set to `True`. If such is the case, we'll just
+    # mutate the values found in `model_desc` to set them to 0.0
+    # to achieve the desired effect.
+    if want_ignore_endo_dropout:
+        print "Overriding ENDO dropout as requested by the train_desc."
+        for k in ["L_endo_dropout_conv_layers", "L_endo_dropout_full_layers"]:
+            if model_desc.has_key(k):
+                model_desc[k] = [0.0] * len(model_desc[k])
+
+
+
+    (cg, error_rate, cost,
+     D_params, D_kind,
+     L_exo_dropout,
+     D_dropout_probs, D_rescale_factor_exo_dropout) = build_model_adjusting_for_potential_undo_exo_dropout(model_desc, want_undo_exo_dropout)
+
 
 
 

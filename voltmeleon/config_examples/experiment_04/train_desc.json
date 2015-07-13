@@ -1,6 +1,6 @@
 {
 	"batch_size" : 1024,
-	"nbr_epochs": 50,
+	"nbr_epochs": 200,
 	"checkpoint_interval_nbr_batches" : 25,
 	"weight_decay_factor" : 0.00001,
 
@@ -10,7 +10,7 @@
 
 	"dataset_hdf5_file" : "/home/dpln/data/SVHN/ninjite_h5/all_last_version.h5",
 
-	"server" : {"hostname" : "127.0.0.1",
+	"server" : {"hostname" : "10.0.1.2",
 				"port" : 7000,
 				"alpha" : 0.5	},
 

@@ -243,6 +243,13 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
         print "Exiting."
         exit()
 
+
+    dataset_desc = train_desc['dataset']
+    for key in dataset_desc:
+        assert key in ['hdf5_file', 'want_subset_valid', 'want_eval_on_valid',
+                       'want_eval_on_test', 'want_subset_test']
+
+
     # Run extension at every iteration, but that doesn't mean that we're updating at every iteration.
     # It just means that we'll consider updating if the timing is good (in order to respect the
     # ratio `max_time_ratio_spent` of time spend synching vs total).
@@ -267,7 +274,11 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
 
     main_loop = build_training.build_training(cg, error_rate, cost, step_rule,
                                               weight_decay_factor=train_desc['weight_decay_factor'],
-                                              dataset_hdf5_file=train_desc['dataset_hdf5_file'],
+                                              hdf5_file=dataset_desc['hdf5_file'],
+                                              want_subset_valid=dataset_desc['want_subset_valid'],
+                                              want_eval_on_valid=dataset_desc['want_eval_on_valid'],
+                                              want_eval_on_test=dataset_desc['want_eval_on_test'],
+                                              want_subset_test=dataset_desc['want_subset_test'],
                                               batch_size=train_desc['batch_size'],
                                               nbr_epochs=train_desc['nbr_epochs'],
                                               saving_path=saving_path,

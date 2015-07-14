@@ -284,7 +284,7 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
                                               saving_path=saving_path,
                                               server_sync_extension=server_sync_extension_auto_timing,
                                               server_sync_initial_read_extension=server_sync_initial_read_extension,
-                                              checkpoint_interval_nbr_batches=train_desc['checkpoint_interval_nbr_batches'])
+                                              monitor_interval_nbr_batches=train_desc['monitor_interval_nbr_batches'])
 
     main_loop.run()
 

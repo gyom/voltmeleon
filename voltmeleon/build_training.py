@@ -53,7 +53,7 @@ def build_training(cg, error_rate, cost, step_rule,
     train_set = H5PYDataset(hdf5_file, which_sets=('train',))
     data_stream_train = DataStream.default_stream(train_set, iteration_scheme=ShuffledScheme(train_set.num_examples, batch_size))
     monitor_train = TrainingDataMonitoring(
-        variables=[cost, error_rate] + extra_variables_to_monitor, prefix="train", every_n_batches=monitor_interval_nbr_batchess)
+        variables=[cost, error_rate] + extra_variables_to_monitor, prefix="train", every_n_batches=monitor_interval_nbr_batches)
 
     if want_eval_on_valid:
         valid_set = H5PYDataset(hdf5_file, which_sets=('valid',))
@@ -69,10 +69,10 @@ def build_training(cg, error_rate, cost, step_rule,
         monitor_valid = None
 
     if want_eval_on_test:
-        test_set = H5PYDataset(dataset_hdf5_file, which_sets=('test',))
+        test_set = H5PYDataset(hdf5_file, which_sets=('test',))
         if want_subset_test:
             data_stream_test = DataStream.default_stream(
-                test_set, iteration_scheme=LimitedScheme(ShuffledScheme(v=test_set.num_examples, batch_size), 2000))
+                test_set, iteration_scheme=LimitedScheme(ShuffledScheme(test_set.num_examples, batch_size), 2000))
         else:
             data_stream_test = DataStream.default_stream(
                 test_set, iteration_scheme=ShuffledScheme(test_set.num_examples, batch_size))

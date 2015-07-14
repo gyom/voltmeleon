@@ -1,21 +1,25 @@
 {
-	"batch_size" : 1024,
-	"nbr_epochs": 200,
-	"checkpoint_interval_nbr_batches" : 25,
-	"weight_decay_factor" : 0.00001,
+    "batch_size" : 1024,
+    "nbr_epochs": 200,
+    "monitor_interval_nbr_batches" : 10,
+    "weight_decay_factor" : 0.00001,
 
-	"step_flavor" : {"method" : "rmsprop",
+    "step_flavor" : {"method" : "rmsprop",
                      "learning_rate" : 0.0001,
-                   	 "decay_rate" : 0.999},
+                     "decay_rate" : 0.999},
 
-	"dataset_hdf5_file" : "/home/dpln/data/SVHN/ninjite_h5/all_last_version.h5",
+    "dataset" : {"hdf5_file" : "/home/dpln/data/SVHN/ninjite_h5/all_last_version.h5",
+                 "want_eval_on_valid" : true,
+                 "want_subset_valid" : true,
+                 "want_eval_on_test" : false,
+                 "want_subset_test" : false},
 
-	"server" : {"hostname" : "10.0.1.2",
-				"port" : 7000,
-				"alpha" : 0.5	},
+    "server" : {"hostname" : "10.0.1.2",
+		"port" : 7000,
+		"alpha" : 0.5	},
 
-	"sync" : {	"want_read_only" : false,
-				"max_time_ratio_spent" : 0.5,
-				"momentum_weights_scaling" : 1.0}
+    "sync" : {"want_read_only" : false,
+	      "max_time_ratio_spent" : 0.5,
+	      "momentum_weights_scaling" : 1.0}
 
 }

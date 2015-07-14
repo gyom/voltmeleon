@@ -52,6 +52,8 @@ def build_training(cg, error_rate, cost, step_rule,
 
     train_set = H5PYDataset(hdf5_file, which_sets=('train',))
     data_stream_train = DataStream.default_stream(train_set, iteration_scheme=ShuffledScheme(train_set.num_examples, batch_size))
+    #data_stream_train = DataStream.default_stream(train_set, iteration_scheme=SequentialScheme(train_set.num_examples, batch_size))
+    
     monitor_train = TrainingDataMonitoring(
         variables=[cost, error_rate] + extra_variables_to_monitor, prefix="train", every_n_batches=monitor_interval_nbr_batches)
 
@@ -62,7 +64,9 @@ def build_training(cg, error_rate, cost, step_rule,
                 valid_set, iteration_scheme=LimitedScheme(ShuffledScheme(valid_set.num_examples, batch_size), 2000))
         else:
             data_stream_valid = DataStream.default_stream(
-                valid_set, iteration_scheme=ShuffledScheme(valid_set.num_examples, batch_size))
+                #valid_set, iteration_scheme=ShuffledScheme(valid_set.num_examples, batch_size))
+                valid_set, iteration_scheme=SequentialScheme(valid_set.num_examples, batch_size))
+
         monitor_valid = DataStreamMonitoring(
             variables=[cost, error_rate], data_stream=data_stream_valid, prefix="valid", every_n_batches=monitor_interval_nbr_batches)
     else:
@@ -82,24 +86,13 @@ def build_training(cg, error_rate, cost, step_rule,
         monitor_test = None
 
 
-    # TODO : Rethink whether you want this or not.
-    #timestamp_start_of_experiment = time.time()
-    #minibatch_timestamp = shared_floatx(np.array([0.0, timestamp_start_of_experiment], dtype=floatX))
-    #minibatch_timestamp.name = "minibatch_timestamp"
-    #def update_minibatch_timestamp(_, old_value):
-    #    now = time.time()
-    #    return np.array([now-timestamp_start_of_experiment, now], dtype=floatX)
-    #minibatch_timestamp_extension = SharedVariableModifier(minibatch_timestamp, update_minibatch_timestamp)
 
-    extensions = [  monitor_train,
-                    FinishAfter(after_n_epochs=nbr_epochs),
-                    Printing(every_n_batches=monitor_interval_nbr_batches)]
+    extensions = (  [monitor_train] +
+                    [e for e in (monitor_valid, monitor_test) if e is not None] +
+                    [FinishAfter(after_n_epochs=nbr_epochs),
+                     Printing(every_n_batches=monitor_interval_nbr_batches)] )
 
-    if monitor_valid is not None:
-        extensions.append(monitor_valid)
-    
-    if monitor_test is not None:
-        extensions.append(monitor_test)
+
 
     if server_sync_extension is not None:
         extensions.append(server_sync_extension)

@@ -80,12 +80,12 @@ def build_model_adjusting_for_potential_undo_exo_dropout(model_desc, want_undo_e
             
             if D_kind[name] == "FULLY_CONNECTED_WEIGHTS":
                 # the input dimension is the 0
-                s = param_dropped.get_value().shape[0] / param.get_value().shape[0]
+                s = 1.0 * param_dropped.get_value().shape[0] / param.get_value().shape[0]
                 D_rescale_factor_exo_dropout[name] = s
                 print "Rescaling parameter %s by %f to compensate for exo dropout." % (name, s)
             elif D_kind[name] == "CONV_FILTER_WEIGHTS":
                 # the input dimension is the 1
-                s = param_dropped.get_value().shape[1] / param.get_value().shape[1]
+                s = 1.0 * param_dropped.get_value().shape[1] / param.get_value().shape[1]
                 D_rescale_factor_exo_dropout[name] = s
                 print "Rescaling parameter %s by %f to compensate for exo dropout." % (name, s)
             else:

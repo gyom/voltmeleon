@@ -10,7 +10,7 @@
 
     "dataset" : {"hdf5_file" : "/home/dpln/data/SVHN/ninjite_h5/all_last_version.h5",
                  "want_eval_on_valid" : true,
-                 "want_subset_valid" : true,
+                 "want_subset_valid" : false,
                  "want_eval_on_test" : false,
                  "want_subset_test" : false},
 

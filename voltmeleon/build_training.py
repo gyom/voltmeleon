@@ -60,6 +60,7 @@ def build_training(cg, error_rate, cost, step_rule,
     if want_eval_on_valid:
         valid_set = H5PYDataset(hdf5_file, which_sets=('valid',))
         if want_subset_valid:
+            # DEBUG : This probably causes a problem because it's not serializable or something like that.
             data_stream_valid = DataStream.default_stream(
                 valid_set, iteration_scheme=LimitedScheme(ShuffledScheme(valid_set.num_examples, batch_size), 2000))
         else:

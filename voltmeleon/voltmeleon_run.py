@@ -34,7 +34,10 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
     assert os.path.exists(experiment_dir)
     n = 0
     while True:
-        saving_path = os.path.join(experiment_dir, "log_%0.2d.zip" % n)
+        if want_observer_mode:
+            saving_path = os.path.join(experiment_dir, "log_%0.2d_obs.zip" % n)
+        else:
+            saving_path = os.path.join(experiment_dir, "log_%0.2d.zip" % n)
         n += 1
         if not os.path.exists(saving_path):
             break

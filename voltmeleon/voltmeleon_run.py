@@ -12,7 +12,23 @@ def usage():
     print "python voltmeleon_run.py --experiment_dir=config_examples/experiment_04 --obs"
 
 
-def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=False):
+def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=False, running_on_helios=False):
+
+    if running_on_helios:
+        # We have to do something special here because all the jobs
+        # are launched with the same command-line, yet we want to run
+        # an "observer" with the job zero.
+        import helios
+        #helios_props = helios.get_properties()
+        # we override the specifications to have `want_observer_mode` to True
+        # automatically when we run on helios AND we're "job zero"
+        want_observer_node = helios.is_job_zero()
+        if want_observer_node:
+            print "We are running on helios in OBSERVER mode."
+        else:
+            print "We are running on helios."
+        helios.print_properties()
+
 
     assert os.path.exists(experiment_dir), "Cannot find experiment_dir : %s" % experiment_dir
 
@@ -52,7 +68,7 @@ def main(argv):
     """
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hv", ["experiment_dir=", "output_server_params_desc_path=", "obs", "want_observer_mode"])
+        opts, args = getopt.getopt(sys.argv[1:], "hv", ["experiment_dir=", "output_server_params_desc_path=", "obs", "want_observer_mode", "helios"])
 
     except getopt.GetoptError as err:
         # print help information and exit:
@@ -63,6 +79,7 @@ def main(argv):
     experiment_dir = None
     output_server_params_desc_path = None
     want_observer_mode = False
+    running_on_helios = False
 
     verbose = False
     for o, a in opts:
@@ -77,11 +94,13 @@ def main(argv):
             output_server_params_desc_path = a
         elif o in ("--obs", "--want_observer_mode"):
             want_observer_mode = True
+        elif o in ("--helios"):
+            running_on_helios = True
         else:
             assert False, "unhandled option"
 
 
-    run(experiment_dir, output_server_params_desc_path=output_server_params_desc_path, want_observer_mode=want_observer_mode)
+    run(experiment_dir, output_server_params_desc_path=output_server_params_desc_path, want_observer_mode=want_observer_mode, running_on_helios)
 
 
 

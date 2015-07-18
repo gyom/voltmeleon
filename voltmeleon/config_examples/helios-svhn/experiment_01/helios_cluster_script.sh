@@ -21,7 +21,10 @@ cd ${EXPERIMENT_DIR}/voltmeleon/voltmeleon
 # DEBUG : Use only one GPU. This is wasteful, but let's try this for now
 #         and tomorrow we'll figure out a way to hash this thing out.
 #         (Maybe use the gpu number as part of the internal index.)
-PYTHONPATH=${PYTHONPATH}:${HOME}/NIPS/distdrop THEANO_FLAGS=device=gpu0,floatX=float32 python voltmeleon_run.py --experiment_dir=config_examples/helios-svhn/experiment_01 --helios &
+export PYTHONPATH=${PYTHONPATH}:${HOME}/NIPS/distdrop
+export PYTHONPATH=${PYTHONPATH}:${HOME}/deep-learning-suite
+
+THEANO_FLAGS=device=gpu0,floatX=float32 python voltmeleon_run.py --experiment_dir=config_examples/helios-svhn/experiment_01 --helios &
 
 #PYTHONPATH=${PYTHONPATH}:${HOME}/NIPS/distdrop THEANO_FLAGS=device=gpu1,floatX=float32 python voltmeleon_run.py --experiment_dir=config_examples/helios-svhn/experiment_01 --helios &
 

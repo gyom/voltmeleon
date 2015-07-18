@@ -1,15 +1,21 @@
 #!/bin/bash
 
 #PBS -l nodes=4:gpus=2
-#PBS -l wallclock=12:00:00
+#PBS -l walltime=12:00:00
 #PBS -A jvb-000-ag
 #PBS -M guillaume.alain.umontreal@gmail.com
 #PBS -m bea
 
-cd ${HOME}/NIPS/experiments/01/voltmeleon/voltmeleon
+# This whole script assumes that you've started the server
+# on `helios1` the entry node for the Helios cluster.
+# You should have picked a port that nobody else was using.
+
+
+export EXPERIMENT_DIR=${HOME}/NIPS/experiments/01
 # Assuming that we've previously performed a
-# git clone https://github.com/gyom/voltmeleon.git voltmeleon
+# git clone https://github.com/gyom/voltmeleon.git ${EXPERIMENT_DIR}/voltmeleon
 # into that directory in preparation.
+cd ${EXPERIMENT_DIR}/voltmeleon/voltmeleon
 
 # Make sure you use a different device for those two calls.
 PYTHONPATH=${PYTHONPATH}:${HOME}/NIPS/distdrop THEANO_FLAGS=device=gpu0,floatX=float32 python voltmeleon_run.py --experiment_dir=config_examples/helios-svhn/experiment_01 --helios &

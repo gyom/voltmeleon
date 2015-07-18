@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#PBS -l nodes=2:gpus=8
+#PBS -l nodes=1:gpus=4
 #PBS -l walltime=1:00:00
 #PBS -A jvb-000-ag
 #PBS -M guillaume.alain.umontreal@gmail.com

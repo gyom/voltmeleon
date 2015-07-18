@@ -19,6 +19,7 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
         # are launched with the same command-line, yet we want to run
         # an "observer" with the job zero.
         import helios
+        helios.print_properties()
         #helios_props = helios.get_properties()
         # we override the specifications to have `want_observer_mode` to True
         # automatically when we run on helios AND we're "job zero"
@@ -27,8 +28,6 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
             print "We are running on helios in OBSERVER mode."
         else:
             print "We are running on helios."
-        helios.print_properties()
-
 
     assert os.path.exists(experiment_dir), "Cannot find experiment_dir : %s" % experiment_dir
 

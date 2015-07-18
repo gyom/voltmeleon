@@ -3,7 +3,15 @@ import time
 import numpy as np
 import theano
 import theano.tensor as T
-from blocks.bricks import Rectifier, Tanh, Logistic, Softmax, MLP, Linear
+
+from blocks.bricks import Rectifier, Tanh, Softmax, MLP, Linear
+try:
+    # works with the "master" branch of blocks (unstable)
+    from blocks.bricks import Logistic
+except:
+    # works with the "stable" branch of blocks (feels outdated)
+    from blocks.bricks import Sigmoid as Logistic
+
 from blocks.initialization import Constant, Uniform
 from blocks.roles import WEIGHT, BIAS, INPUT
 from blocks.graph import ComputationGraph, apply_dropout

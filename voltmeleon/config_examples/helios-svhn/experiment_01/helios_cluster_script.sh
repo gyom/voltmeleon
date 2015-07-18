@@ -22,7 +22,11 @@ cd ${EXPERIMENT_DIR}/voltmeleon/voltmeleon
 #         and tomorrow we'll figure out a way to hash this thing out.
 #         (Maybe use the gpu number as part of the internal index.)
 export PYTHONPATH=${PYTHONPATH}:${HOME}/NIPS/distdrop
-export PYTHONPATH=${PYTHONPATH}:${HOME}/deep-learning-suite
+export PYTHONPATH=${PYTHONPATH}:${HOME}/deep-learning-suite/fuel
+export PYTHONPATH=${PYTHONPATH}:${HOME}/deep-learning-suite/theano
+export PYTHONPATH=${PYTHONPATH}:${HOME}/deep-learning-suite/picklable_itertools
+export PYTHONPATH=${PYTHONPATH}:${HOME}/deep-learning-suite/blocks
+
 
 THEANO_FLAGS=device=gpu0,floatX=float32 python voltmeleon_run.py --experiment_dir=config_examples/helios-svhn/experiment_01 --helios &
 

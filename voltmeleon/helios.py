@@ -12,8 +12,8 @@ def get_properties():
     for k in ['MOAB_JOBNAME', 'MOAB_USER', 'MOAB_TASKMAP', 'MOAB_CLASS', 'MOAB_PROCCOUNT', 'MOAB_GROUP', 'MOAB_NODELIST', 'MOAB_ACCOUNT', 'MOAB_NODECOUNT', 'MOAB_JOBID', 'MOAB_JOBARRAYINDEX', 'MOAB_QOS']:
         if os.environ.has_key(k):
             props[k] = os.environ[k]
- 
-   return props
+
+    return props
 
 def is_job_zero():
     return os.environ['MOAB_JOBARRAYINDEX'] == '0'

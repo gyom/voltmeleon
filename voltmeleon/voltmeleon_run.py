@@ -20,6 +20,7 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
         # an "observer" with the job zero.
         import helios
         helios.print_properties()
+        print os.environ
         #helios_props = helios.get_properties()
         # we override the specifications to have `want_observer_mode` to True
         # automatically when we run on helios AND we're "job zero"

@@ -21,7 +21,7 @@ def get_id():
     id = int(os.environ['MOAB_JOBARRAYINDEX'])
 
     import theano
-    
+    import re
     m = re.match("gpu(\d+)", theano.config.device)
     if m:
         offset = int(m.group(1))

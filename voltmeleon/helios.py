@@ -18,7 +18,7 @@ def is_job_zero():
 
 def get_id():
     assert os.environ.has_key('MOAB_JOBARRAYINDEX')
-    id = int(os.environ['MOAB_JOBARRAYINDEX'])
+    base_id = int(os.environ['MOAB_JOBARRAYINDEX'])
 
     import theano
     import re

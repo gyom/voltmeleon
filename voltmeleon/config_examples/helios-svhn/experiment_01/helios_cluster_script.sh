@@ -31,7 +31,7 @@ export PYTHONPATH=${PYTHONPATH}:${HOME}/deep-learning-suite/blocks
 
 THEANO_FLAGS=device=gpu0,floatX=float32 python voltmeleon_run.py --experiment_dir=config_examples/helios-svhn/experiment_01 --helios &
 
-#PYTHONPATH=${PYTHONPATH}:${HOME}/NIPS/distdrop THEANO_FLAGS=device=gpu1,floatX=float32 python voltmeleon_run.py --experiment_dir=config_examples/helios-svhn/experiment_01 --helios &
+THEANO_FLAGS=device=gpu1,floatX=float32 python voltmeleon_run.py --experiment_dir=config_examples/helios-svhn/experiment_01 --helios &
 
 # taken from
 # http://stackoverflow.com/questions/356100/how-to-wait-in-bash-for-several-subprocesses-to-finish-and-return-exit-code-0

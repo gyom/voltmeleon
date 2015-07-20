@@ -29,6 +29,9 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
             print "We are running on helios in OBSERVER mode."
         else:
             print "We are running on helios."
+        jobid = helios.get_id()
+    else:
+        jobid = np.random.randint(low=0, high=100000)
 
     assert os.path.exists(experiment_dir), "Cannot find experiment_dir : %s" % experiment_dir
 
@@ -48,12 +51,13 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
     # hardcoded path for blocks saving a zip file
 
     assert os.path.exists(experiment_dir)
+
     n = 0
-    while True:
+    while True
         if want_observer_mode:
-            saving_path = os.path.join(experiment_dir, "log_%0.2d_obs.zip" % n)
+            saving_path = os.path.join(experiment_dir, "log_%0.2d_obs" % (jobid + n,)
         else:
-            saving_path = os.path.join(experiment_dir, "log_%0.2d.zip" % n)
+            saving_path = os.path.join(experiment_dir, "log_%0.2d" % (jobid + n,)
         n += 1
         if not os.path.exists(saving_path):
             break

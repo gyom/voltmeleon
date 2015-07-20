@@ -108,10 +108,14 @@ def build_training(cg, error_rate, cost, step_rule,
         assert isinstance(saving_path, str)
         assert os.path.isdir(os.path.dirname(saving_path)), "The directory for saving_path (%s) does not exist." % saving_path
         if want_save_model_best_valid_model:
-            extensions.append(Checkpoint_observer(path=saving_path, use_cpickle=True, save_separately=['log', 'model'],
+            #extensions.append(Checkpoint_observer(path=saving_path, use_cpickle=True, save_separately=['log', 'model'],
+            #                             every_n_batches=monitor_interval_nbr_batches))
+            extensions.append(Checkpoint_observer(path=saving_path, save_separately=['log', 'model'],
                                          every_n_batches=monitor_interval_nbr_batches))
         else:
-            extensions.append(Checkpoint(path=saving_path, use_cpickle=True, save_separately=['log'],
+            #extensions.append(Checkpoint(path=saving_path, use_cpickle=True, save_separately=['log'],
+            #                             every_n_batches=monitor_interval_nbr_batches))
+            extensions.append(Checkpoint(path=saving_path, save_separately=['log'],
                                          every_n_batches=monitor_interval_nbr_batches))
 
     algorithm = GradientDescent(cost=cost, params=cg.parameters,

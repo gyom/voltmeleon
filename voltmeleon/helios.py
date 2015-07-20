@@ -2,8 +2,6 @@
 
 import os
 
-#assert os.environ.has_key('MOAB_JOBARRAYINDEX')
-
 def get_properties():
 
     props = {}
@@ -16,7 +14,23 @@ def get_properties():
     return props
 
 def is_job_zero():
-    return os.environ['MOAB_JOBARRAYINDEX'] == '0'
+    return get_id() == 0
+
+def get_id():
+    assert os.environ.has_key('MOAB_JOBARRAYINDEX')
+    id = int(os.environ['MOAB_JOBARRAYINDEX'])
+
+    import theano
+    
+    m = re.match("gpu(\d+)", theano.config.device)
+    if m:
+        offset = int(m.group(1))
+        print "Device GPU offset %d." % offset
+    else:
+        print "Failed to read the offset based on theano.config.device : %s" % theano.config.device
+        assert m
+
+    return 2 * base_id + offset
 
 def print_properties():
 

@@ -3,7 +3,6 @@
 #PBS -l nodes=1:gpus=2
 #PBS -l walltime=1:00:00
 #PBS -A jvb-000-ag
-#PBS -M guillaume.alain.umontreal@gmail.com
 #PBS -m bea
 #PBS -t [0-3]%4
 
@@ -11,6 +10,8 @@
 # on `helios1` the entry node for the Helios cluster.
 # You should have picked a port that nobody else was using.
 
+
+"""#PBS -M guillaume.alain.umontreal@gmail.com"""
 
 export EXPERIMENT_DIR=${HOME}/NIPS/experiments/01
 # Assuming that we've previously performed a

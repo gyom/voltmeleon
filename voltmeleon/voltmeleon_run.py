@@ -34,6 +34,8 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
         import numpy as np
         jobid = np.random.randint(low=0, high=100000)
 
+    print "jobid : %d" % jobid
+
     assert os.path.exists(experiment_dir), "Cannot find experiment_dir : %s" % experiment_dir
 
     model_desc_file = os.path.join(experiment_dir, "model_desc.json")
@@ -45,6 +47,7 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
         train_desc_file = os.path.join(experiment_dir, "observer_desc.json")
     else:
         train_desc_file = os.path.join(experiment_dir, "train_desc.json")
+    print "train_desc_file : %s" % train_desc_file
 
     import json
     model_desc = json.load(open(model_desc_file, "r"))
@@ -63,7 +66,7 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
         if not os.path.exists(saving_path):
             break
             
-
+    print "saving_path : %s" % saving_path
 
     client_runner.run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=output_server_params_desc_path)
 

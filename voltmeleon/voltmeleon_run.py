@@ -24,8 +24,8 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
         #helios_props = helios.get_properties()
         # we override the specifications to have `want_observer_mode` to True
         # automatically when we run on helios AND we're "job zero"
-        want_observer_node = helios.is_job_zero()
-        if want_observer_node:
+        want_observer_mode = helios.is_job_zero()
+        if want_observer_mode:
             print "We are running on helios in OBSERVER mode."
         else:
             print "We are running on helios."

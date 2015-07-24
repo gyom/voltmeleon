@@ -50,6 +50,17 @@ def build_training(cg, error_rate, cost, step_rule,
         extra_variables_to_monitor.append(e)
     
 
+    timestamp_start_of_experiment = time.time()
+    minibatch_timestamp = shared_floatx(np.array([0.0, timestamp_start_of_experiment], dtype=floatX))
+    minibatch_timestamp.name = "minibatch_timestamp"
+    def update_minibatch_timestamp(_, old_value):
+        now = time.time()
+        return np.array([now-timestamp_start_of_experiment, now], dtype=floatX)
+    minibatch_timestamp_extension = SharedVariableModifier(minibatch_timestamp, update_minibatch_timestamp)
+    extra_variables_to_monitor.append(minibatch_timestamp)
+
+
+
     train_set = H5PYDataset(hdf5_file, which_sets=('train',))
     data_stream_train = DataStream.default_stream(train_set, iteration_scheme=ShuffledScheme(train_set.num_examples, batch_size))
     #data_stream_train = DataStream.default_stream(train_set, iteration_scheme=SequentialScheme(train_set.num_examples, batch_size))
@@ -91,7 +102,8 @@ def build_training(cg, error_rate, cost, step_rule,
     extensions = (  [monitor_train] +
                     [e for e in (monitor_valid, monitor_test) if e is not None] +
                     [FinishAfter(after_n_epochs=nbr_epochs),
-                     Printing(every_n_batches=monitor_interval_nbr_batches)] )
+                     Printing(every_n_batches=monitor_interval_nbr_batches),
+                     minibatch_timestamp_extension] )
 
 
 

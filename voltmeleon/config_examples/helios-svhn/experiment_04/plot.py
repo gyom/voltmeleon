@@ -21,10 +21,12 @@ import matplotlib.pyplot as plt
 
 def run():
 
-    id = "01"
+    id = "04"
 
     root_dir = os.path.join(os.environ['HOME'], "NIPS")
-    experiment_dir = os.path.join(root_dir, "voltmeleon/voltmeleon/config_examples/helios-svhn/experiment_%s" % id)
+    #experiment_dir = os.path.join(root_dir, "voltmeleon/voltmeleon/config_examples/helios-svhn/experiment_%s" % id)
+    experiment_dir = os.path.join(root_dir, "experiments/experiment_%s" % id)
+
 
     read_results_and_plot(experiment_dir, 'cost')
     read_results_and_plot(experiment_dir, 'error_rate')

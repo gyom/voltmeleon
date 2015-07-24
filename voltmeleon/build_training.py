@@ -7,7 +7,8 @@ from blocks.graph import ComputationGraph
 from blocks.filter import VariableFilter
 from blocks.extensions import FinishAfter, Printing
 from blocks.extensions.monitoring import DataStreamMonitoring, TrainingDataMonitoring
-from blocks.extensions.training import SharedVariableModifier
+#from blocks.extensions.training import SharedVariableModifier
+from blocks.extensions import SimpleExtension
 from blocks.extensions.saveload import Checkpoint
 from blocks.model import Model
 from fuel.streams import DataStream
@@ -49,15 +50,42 @@ def build_training(cg, error_rate, cost, step_rule,
         e.name = W.name + "_absmean"
         extra_variables_to_monitor.append(e)
     
+    # ugly hack
+    import inspect
+    class SharedVariableModifier(SimpleExtension):
+        def __init__(self, parameter, function, **kwargs):
+            kwargs.setdefault("after_batch", True)
+            super(SharedVariableModifier, self).__init__(**kwargs)
+            self.parameter = parameter
+            self.function = function
+            self.num_args = len(inspect.getargspec(function).args)
 
+        def __getstate__(self):
+            return None
+
+        def __setstate__(self, d):
+            pass
+
+        def do(self, which_callback, *args):
+            iterations_done = self.main_loop.log.status['iterations_done']
+            if self.num_args == 1:
+                new_value = self.function(iterations_done)
+            else:
+                old_value = self.parameter.get_value()
+                new_value = self.function(iterations_done, old_value)
+            self.parameter.set_value(new_value)
+
+    
     timestamp_start_of_experiment = time.time()
     minibatch_timestamp = shared_floatx(np.array([0.0, timestamp_start_of_experiment], dtype=floatX))
     minibatch_timestamp.name = "minibatch_timestamp"
     def update_minibatch_timestamp(_, old_value):
         now = time.time()
         return np.array([now-timestamp_start_of_experiment, now], dtype=floatX)
+    SharedVariableModifier.__getstate__
     minibatch_timestamp_extension = SharedVariableModifier(minibatch_timestamp, update_minibatch_timestamp)
     extra_variables_to_monitor.append(minibatch_timestamp)
+
 
 
 

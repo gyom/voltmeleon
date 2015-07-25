@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 
 def run():
 
-    id = "07"
+    id = "10"
 
     root_dir = os.path.join(os.environ['HOME'], "NIPS")
     #experiment_dir = os.path.join(root_dir, "voltmeleon/voltmeleon/config_examples/helios-svhn/experiment_%s" % id)

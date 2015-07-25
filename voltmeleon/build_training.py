@@ -50,6 +50,7 @@ def build_training(cg, error_rate, cost, step_rule,
         e.name = W.name + "_absmean"
         extra_variables_to_monitor.append(e)
     
+    
     # ugly hack
     import inspect
     class SharedVariableModifier(SimpleExtension):
@@ -85,7 +86,7 @@ def build_training(cg, error_rate, cost, step_rule,
         return np.array([now-timestamp_start_of_experiment, now], dtype=floatX)
     SharedVariableModifier.__getstate__
     minibatch_timestamp_extension = SharedVariableModifier(minibatch_timestamp, update_minibatch_timestamp)
-    extra_variables_to_monitor.append(minibatch_timestamp)
+    #extra_variables_to_monitor.append(minibatch_timestamp)
 
 
 
@@ -131,8 +132,8 @@ def build_training(cg, error_rate, cost, step_rule,
     extensions = (  [monitor_train] +
                     [e for e in (monitor_valid, monitor_test) if e is not None] +
                     [FinishAfter(after_n_epochs=nbr_epochs),
-                     Printing(every_n_batches=monitor_interval_nbr_batches),
-                     minibatch_timestamp_extension] )
+                     Printing(every_n_batches=monitor_interval_nbr_batches)] )
+                     #minibatch_timestamp_extension] )
 
 
 

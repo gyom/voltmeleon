@@ -61,9 +61,10 @@ def build_training(cg, error_rate, cost, step_rule,
             self.num_args = len(inspect.getargspec(function).args)
 
         def __getstate__(self):
-            return None
+            return {}
+            #return False
 
-        def __setstate__(self, d):
+        def __setstate__(self, state):
             pass
 
         def do(self, which_callback, *args):

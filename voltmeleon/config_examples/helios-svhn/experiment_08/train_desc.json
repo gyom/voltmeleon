@@ -5,7 +5,7 @@
     "weight_decay_factor" : 0.00001,
 
     "step_flavor" : {"method" : "rmsprop",
-                     "learning_rate" : 0.001,
+                     "learning_rate" : 0.0001,
                      "decay_rate" : 0.999},
 
     "dataset" : {"hdf5_file" : "/home/alaingui/data/SVHN/ninjite_h5/all_last_version.h5",

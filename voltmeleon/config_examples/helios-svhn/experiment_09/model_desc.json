@@ -10,9 +10,10 @@
 	"input_shape" : [3, 32, 32],
 	"output_dim" : 10,
 
-	"L_exo_dropout_conv_layers" : [0.0, 0.90, 0.90, 0.90, 0.90],
-	"L_exo_dropout_full_layers" : [0.90, 0.90, 0.90, 0.0],
+	"L_exo_dropout_conv_layers" : [0.0, 0.5, 0.5, 0.5, 0.5],
+	"L_exo_dropout_full_layers" : [0.5, 0.5, 0.5, 0.0],
 
-	"L_endo_dropout_conv_layers" : [0.0, 0.9, 0.9, 0.9, 0.9],
-	"L_endo_dropout_full_layers" : [0.9, 0.9, 0.9, 0.0]
+	"L_endo_dropout_conv_layers" : [0.0, 0.0, 0.0, 0.0, 0.0],
+	"L_endo_dropout_full_layers" : [0.0, 0.0, 0.0, 0.0]
+
 }

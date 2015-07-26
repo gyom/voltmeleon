@@ -6,7 +6,7 @@
 
     "step_flavor" : {"method" : "rmsprop",
                      "learning_rate" : 0.001,
-                     "decay_rate" : 0.999},
+                     "decay_rate" : 0.99},
 
     "dataset" : {"hdf5_file" : "/home/alaingui/data/SVHN/ninjite_h5/all_last_version.h5",
                  "want_eval_on_valid" : true,
@@ -20,6 +20,6 @@
 
     "sync" : {  "want_read_only" : false,
 	            "max_time_ratio_spent" : 0.1,
-	            "want_undo_exo_dropout" : true,
-                "want_ignore_endo_dropout" : true}
+	            "want_undo_exo_dropout" : false,
+                "want_ignore_endo_dropout" : false}
 }

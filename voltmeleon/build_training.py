@@ -7,7 +7,7 @@ from blocks.graph import ComputationGraph
 from blocks.filter import VariableFilter
 from blocks.extensions import FinishAfter, Printing, Timing
 from blocks.extensions.monitoring import DataStreamMonitoring, TrainingDataMonitoring
-#from blocks.extensions import SimpleExtension
+from blocks.extensions import SimpleExtension
 from blocks.extensions.saveload import Checkpoint
 from blocks.model import Model
 from fuel.streams import DataStream
@@ -20,6 +20,17 @@ from schemes import LimitedScheme
 floatX = theano.config.floatX
 import os
 import time
+
+
+class Timestamp(SimpleExtension):
+    def __init__(self, **kwargs):
+        super(Timestamp, self).__init__(**kwargs)
+
+    def do(self, which_callback, *args):
+        current_row = self.main_loop.log.current_row
+        current_row['datestamp'] = time.strftime("%Y-%m-%d %H:%M")
+        current_row['timestamp'] = time.time()
+
 
 def build_training(cg, error_rate, cost, step_rule,
                    weight_decay_factor=0.0,
@@ -87,11 +98,11 @@ def build_training(cg, error_rate, cost, step_rule,
         monitor_test = None
 
 
-
     extensions = (  [monitor_train] +
                     [e for e in (monitor_valid, monitor_test) if e is not None] +
                     [FinishAfter(after_n_epochs=nbr_epochs),
                      Timing(every_n_batches=monitor_interval_nbr_batches),
+                     Timestamp(every_n_batches=monitor_interval_nbr_batches),
                      Printing(every_n_batches=monitor_interval_nbr_batches)] )
 
 

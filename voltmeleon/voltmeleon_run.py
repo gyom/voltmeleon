@@ -56,17 +56,16 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
 
     assert os.path.exists(experiment_dir)
 
-    n = 0
-    while True:
-        if want_observer_mode:
-            saving_path = os.path.join(experiment_dir, "log_%0.2d_obs" % (jobid + n,))
-        else:
-            saving_path = os.path.join(experiment_dir, "log_%0.2d" % (jobid + n,))
-        n += 1
-        if not os.path.exists(saving_path):
-            break
-            
+    if want_observer_mode:
+        saving_path = os.path.join(experiment_dir, "log_%0.2d_obs" % (jobid ,))
+    else:
+        saving_path = os.path.join(experiment_dir, "log_%0.2d" % (jobid ,))
+
     print "saving_path : %s" % saving_path
+
+    if os.path.exists(saving_path):
+        print "saving path already exists. you have setup something wrong in your experiment."
+        exit()
 
     client_runner.run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=output_server_params_desc_path)
 

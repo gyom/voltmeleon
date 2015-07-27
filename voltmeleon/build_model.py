@@ -4,7 +4,7 @@ import numpy as np
 import theano
 import theano.tensor as T
 
-from blocks.bricks import Rectifier, Tanh, Softmax, MLP, Linear
+from blocks.bricks import Rectifier, Tanh, Softmax, MLP, Linear, Identity
 try:
     # works with the "master" branch of blocks (unstable)
     from blocks.bricks import Logistic
@@ -77,7 +77,8 @@ def build_submodel(input_shape,
                    L_exo_dropout_conv_layers,
                    L_exo_dropout_full_layers,
                    L_endo_dropout_conv_layers,
-                   L_endo_dropout_full_layers):
+                   L_endo_dropout_full_layers,
+                   L_border_mode=None):
 
     # TO DO : target size and name of the features
     # TO DO : border_mode
@@ -100,6 +101,9 @@ def build_submodel(input_shape,
     assert len(L_dim_conv_layers) == len(L_filter_size)
     assert len(L_dim_conv_layers) == len(L_pool_size)
     assert len(L_dim_conv_layers) == len(L_activation_conv)
+    if L_border_mode is None:
+        L_border_mode = ["valid"] * len(L_dim_conv_layers)
+    assert len(L_dim_conv_layers) == len(L_border_mode)
     assert len(L_dim_conv_layers) == len(L_endo_dropout_conv_layers)
     assert len(L_dim_conv_layers) == len(L_exo_dropout_conv_layers)
 
@@ -117,11 +121,12 @@ def build_submodel(input_shape,
 
     if len(L_dim_conv_layers):
         for (num_filters, filter_size,
-            pool_size, activation_str,
+            pool_size, activation_str, border_mode,
             dropout, index) in zip(L_dim_conv_layers,
                                   L_filter_size,
                                   L_pool_size,
                                   L_activation_conv,
+                                  L_border_mode,
                                   L_exo_dropout_conv_layers,
                                   xrange(len(L_dim_conv_layers))
                                   ):
@@ -137,6 +142,8 @@ def build_submodel(input_shape,
                 activation = Tanh().apply
             elif activation_str.lower() in ['sigmoid', 'logistic']:
                 activation = Logistic().apply
+            elif activation_str.lower() in ['id', 'identity']:
+                activation = Identity().apply
             else:
                 raise Exception("unknown activation function : %s", activation_str)
 
@@ -147,11 +154,13 @@ def build_submodel(input_shape,
                 layer_conv = ConvolutionalActivation(activation=activation,
                                                 filter_size=filter_size,
                                                 num_filters=num_filters,
+                                                border_mode=border_mode,
                                                 name="layer_%d" % index)
             else:
                 layer_conv = ConvolutionalLayer(activation=activation,
                                                 filter_size=filter_size,
                                                 num_filters=num_filters,
+                                                border_mode=border_mode,
                                                 pooling_size=pool_size,
                                                 name="layer_%d" % index)
 
@@ -201,6 +210,8 @@ def build_submodel(input_shape,
                     activation = Tanh().apply
                 elif activation_str.lower() in ['sigmoid', 'logistic']:
                     activation = Logistic().apply
+                elif activation_str.lower() in ['id', 'identity']:
+                    activation = Identity().apply
                 else:
                     raise Exception("unknown activation function : %s", activation_str)
 

@@ -12,20 +12,13 @@ import pylab
 import matplotlib.pyplot as plt
 
 
-# BUG : The observer uses a different schedule.
-#       You can't just put in there, side-by-side.
-#       Something else has to be done.
-#       Besides, the observer config is not read properly,
-#       so that needs to be debugged first.
-
-
 def run():
 
-    id = "02"
+    #id = "02"
+    #root_dir = os.path.join(os.environ['HOME'], "NIPS")
+    #experiment_dir = os.path.join(root_dir, "experiments/experiment_%s" % id)
 
-    root_dir = os.path.join(os.environ['HOME'], "NIPS")
-    #experiment_dir = os.path.join(root_dir, "voltmeleon/voltmeleon/config_examples/helios-svhn/experiment_%s" % id)
-    experiment_dir = os.path.join(root_dir, "experiments/experiment_%s" % id)
+    experiment_dir = os.getcwd()
 
     read_results_and_plot(experiment_dir, 'cost')
     read_results_and_plot(experiment_dir, 'error_rate')
@@ -53,8 +46,7 @@ def read_results_and_plot(experiment_dir, criterion):
 
     pylab.hold(True)
 
-    max_L_step = 0
-
+    L_results = []
     for result_file in reversed(sorted(L_result_files, key=lambda e:e['worker_id'])):
         # The strange sorting thing is so that we'll print the worker_id==0
         # at the very end so it will be at the top of the graph, above the others.
@@ -75,16 +67,31 @@ def read_results_and_plot(experiment_dir, criterion):
         for (step,v) in A.items():
 
             if all([v.has_key(k) for k in D_logged.keys()]):
-                L_step.append(step)
+
+                if not v.has_key('timestamp'):
+                    print "You are probably not using the `Timestamp` blocks extension because there is no 'timestamp' entry in the logs."
+                    quit()
+
+                L_step.append(v['timestamp'])
                 for k in D_logged.keys():
                     D_logged[k].append(v[k])
 
-        # save this for the time when we plot the observer steps
-        # (that we have to fake)
-        M = np.array(L_step).max()
-        if max_L_step < M:
-            max_L_step = M
+        L_results.append({'A_step':np.array(L_step), 'D_logged':D_logged, 'observer_mode':observer_mode})
 
+    # This is the smallest value encountered for all the steps.
+    # We shouldn't plot anything before we come up with this value.
+    step_min = None
+    for res in L_results:
+        if step_min is not None:
+            step_min = np.min([step_min, res['A_step'].min()])
+        else:
+            step_min = res['A_step'].min()
+
+    for res in L_results:
+
+        domain = res['A_step']
+        D_logged = res['D_logged']
+        observer_mode = res['observer_mode']
 
         #import pdb; pdb.set_trace()
 
@@ -92,16 +99,18 @@ def read_results_and_plot(experiment_dir, criterion):
             if D_logged.has_key(k):
                 if observer_mode:
                     color = c2[0]
-                    fake_L_step = np.linspace(0.0, max_L_step, len(L_step))
-                    h = pylab.plot(fake_L_step, D_logged[k], c=color, label=k)
+                    h = pylab.plot(domain - step_min, D_logged[k], c=color, label=k)
                 else:
                     color = c2[1]
-                    h = pylab.plot(L_step, D_logged[k], c=color)
+                    h = pylab.plot(domain - step_min, D_logged[k], c=color)
     
     plt.legend()
 
     if criterion == 'error_rate':
+        pylab.ylim(ymin=0.0, ymax=1.0)
+    elif criterion == 'cost':
         pylab.ylim(ymin=0.0)
+
 
     pylab.draw()
     pylab.savefig(outputfile, dpi=150)

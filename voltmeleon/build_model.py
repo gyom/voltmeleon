@@ -78,10 +78,10 @@ def build_submodel(input_shape,
                    L_exo_dropout_full_layers,
                    L_endo_dropout_conv_layers,
                    L_endo_dropout_full_layers,
-                   L_border_mode=None):
+                   L_border_mode=None,
+                   L_pool_step=None):
 
     # TO DO : target size and name of the features
-    # TO DO : border_mode
 
     x = T.tensor4('features')
     y = T.imatrix('targets')
@@ -100,6 +100,9 @@ def build_submodel(input_shape,
     conv_layers = []
     assert len(L_dim_conv_layers) == len(L_filter_size)
     assert len(L_dim_conv_layers) == len(L_pool_size)
+    if L_pool_step is None:
+        L_pool_step = [None] * len(L_dim_conv_layers)
+    assert len(L_dim_conv_layers) == len(L_pool_step)
     assert len(L_dim_conv_layers) == len(L_activation_conv)
     if L_border_mode is None:
         L_border_mode = ["valid"] * len(L_dim_conv_layers)
@@ -121,10 +124,11 @@ def build_submodel(input_shape,
 
     if len(L_dim_conv_layers):
         for (num_filters, filter_size,
-            pool_size, activation_str, border_mode,
+            pool_size, pool_step, activation_str, border_mode,
             dropout, index) in zip(L_dim_conv_layers,
                                   L_filter_size,
                                   L_pool_size,
+                                  L_pool_step,
                                   L_activation_conv,
                                   L_border_mode,
                                   L_exo_dropout_conv_layers,
@@ -133,7 +137,11 @@ def build_submodel(input_shape,
 
             # convert filter_size and pool_size in tuple
             filter_size = tuple(filter_size)
-            pool_size = tuple(pool_size)
+
+            if pool_size is None:
+                pool_size = (0,0)
+            else:
+                pool_size = tuple(pool_size)
 
             # TO DO : leaky relu
             if activation_str.lower() == 'rectifier':
@@ -150,19 +158,26 @@ def build_submodel(input_shape,
             assert 0.0 <= dropout and dropout < 1.0
             num_filters = num_filters - int(num_filters*dropout)
 
-            if pool_size[0] == 0 and pool_size[1] == 0:
+            print "border_mode : %s" % border_mode
+
+            if (pool_size[0] == 0 and pool_size[1] == 0):
                 layer_conv = ConvolutionalActivation(activation=activation,
                                                 filter_size=filter_size,
                                                 num_filters=num_filters,
                                                 border_mode=border_mode,
                                                 name="layer_%d" % index)
             else:
+                if pool_step is None:
+                    kwargs = {}
+                else:
+                    kwargs = {'pooling_step':tuple(pool_step)}
                 layer_conv = ConvolutionalLayer(activation=activation,
                                                 filter_size=filter_size,
                                                 num_filters=num_filters,
                                                 border_mode=border_mode,
                                                 pooling_size=pool_size,
-                                                name="layer_%d" % index)
+                                                name="layer_%d" % index,
+                                                **kwargs)
 
             conv_layers.append(layer_conv)
 

@@ -5,7 +5,7 @@
     "weight_decay_factor" : 0.00001,
 
     "step_flavor" : {"method" : "rmsprop",
-                     "learning_rate" : 0.0001,
+                     "learning_rate" : 0.001,
                      "decay_rate" : 0.99},
 
     "dataset" : {"hdf5_file" : "/home/alaingui/data/SVHN/ninjite_h5/all_last_version.h5",
@@ -14,12 +14,12 @@
                  "want_eval_on_test" : false,
                  "want_subset_test" : false},
 
-    "server" : {"hostname" : "10.12.1.3",
-		        "port" : 7463,
-		        "alpha" : 0.5 },
+    "server" : {"hostname" : "10.0.1.2",
+		"port" : 7000,
+		"alpha" : 0.5 },
 
     "sync" : {  "want_read_only" : false,
-	            "max_time_ratio_spent" : 0.1,
-	            "want_undo_exo_dropout" : false,
+	        "max_time_ratio_spent" : 0.2,
+	        "want_undo_exo_dropout" : false,
                 "want_ignore_endo_dropout" : false}
 }

@@ -212,7 +212,13 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
                                                                 server_desc['beta'])
 
             client.connect()
-            print client.read_param_desc_from_server()
+            E = client.read_param_desc_from_server()
+            print ""
+            print "==== read_param_desc_from_server() ===="
+            for e in sorted(E, key=lambda e: e['name']):
+                print e
+            print "==== ===="
+            print ""
 
         # Note that we don't need to get the parameters here.
         # We use the `server_sync_initial_read_extension` to do this job.

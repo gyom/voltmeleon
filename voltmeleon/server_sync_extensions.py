@@ -167,7 +167,7 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
                         param_value = self.client.pull_split_param(name) * np.float32(self.D_rescale_factor_exo_dropout.get(name, 1.0))
                         shape = param_var.get_value(borrow=True, return_internal_type=True).shape
                         
-                        if True:
+                        if False:
                             print "Reading split parameter %s from server." % name
                             print "The variable on the GPU has shape : %s" % str(shape)
                             print "The parameter read has shape : %s" % str(param_value.shape)

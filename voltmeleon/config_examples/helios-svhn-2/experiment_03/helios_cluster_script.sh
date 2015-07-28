@@ -4,7 +4,7 @@
 #PBS -l walltime=12:00:00
 #PBS -A jvb-000-ag
 #PBS -m bea
-#PBS -t [0-3]%4
+#PBS -t [0-7]%8
 
 """#PBS -M guillaume.alain.umontreal@gmail.com"""
 

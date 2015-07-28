@@ -19,7 +19,7 @@
                 "alpha" : 0.5 },
 
     "sync" : {  "want_read_only" : false,
-                "max_time_ratio_spent" : 0.5,
+                "max_time_ratio_spent" : 0.2,
                 "want_undo_exo_dropout" : false,
                 "want_ignore_endo_dropout" : false}
 }

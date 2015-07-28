@@ -1,0 +1,86 @@
+
+for EXPID in 00 01 02 03;
+do
+    mkdir ${HOME}/NIPS/experiments/${EXPID}
+    cd ${HOME}/NIPS/experiments/${EXPID}
+    git clone https://github.com/gyom/voltmeleon.git voltmeleon
+done
+
+
+for EXPID in 00 01 02 03;
+do
+    cd ${HOME}/NIPS/experiments/${EXPID}/voltmeleon
+    git pull
+done
+
+
+
+
+
+
+export EXPID=00
+export EXPPORT=7450
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+export EXPID=01
+export EXPPORT=7451
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+export EXPID=02
+export EXPPORT=7452
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+export EXPID=03
+export EXPPORT=7453
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7450 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7451 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7452 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7453 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+
+
+
+for EXPID in 00 01 02 03 ;
+do
+    cd ${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}
+    msub helios_cluster_script.sh
+done
+
+
+
+
+
+    "L_exo_dropout_conv_layers" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    "L_exo_dropout_full_layers" : [0.0, 0.0],
+
+    "L_endo_dropout_conv_layers" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    "L_endo_dropout_full_layers" : [0.0, 0.0]
+
+
+
+
+    "L_exo_dropout_conv_layers" : [0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2],
+    "L_exo_dropout_full_layers" : [0.2, 0.0],
+
+    "L_endo_dropout_conv_layers" : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    "L_endo_dropout_full_layers" : [0.0, 0.0]
+
+
+
+
+    "L_exo_dropout_conv_layers" : [0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2],
+    "L_exo_dropout_full_layers" : [0.2, 0.0],
+
+    "L_endo_dropout_conv_layers" : [0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2],
+    "L_endo_dropout_full_layers" : [0.2, 0.0]
+
+
+
+
+    "L_exo_dropout_conv_layers" : [0.0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+    "L_exo_dropout_full_layers" : [0.5, 0.0],
+
+    "L_endo_dropout_conv_layers" : [0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2],
+    "L_endo_dropout_full_layers" : [0.2, 0.0]

@@ -13,7 +13,7 @@
 # You should have picked a port that nobody else was using.
 
 
-export EXPERIMENT_DIR=${HOME}/NIPS/experiments/03
+export EXPERIMENT_DIR=${HOME}/NIPS/experiments/07
 # Assuming that we've previously performed a
 # git clone https://github.com/gyom/voltmeleon.git ${EXPERIMENT_DIR}/voltmeleon
 # into that directory in preparation.
@@ -30,9 +30,9 @@ export PYTHONPATH=${PYTHONPATH}:${HOME}/deep-learning-suite/picklable_itertools
 export PYTHONPATH=${PYTHONPATH}:${HOME}/deep-learning-suite/blocks
 
 # transfer the stdout to stderr to it gets logged
-THEANO_FLAGS=device=gpu0,floatX=float32 stdbuf -i0 -o0 -e0 python voltmeleon_run.py --experiment_dir=config_examples/helios-svhn-2/experiment_03 --helios >> ${MOAB_JOBARRAYINDEX}_0_out &
+THEANO_FLAGS=device=gpu0,floatX=float32 stdbuf -i0 -o0 -e0 python voltmeleon_run.py --experiment_dir=config_examples/helios-svhn-2/experiment_07 --helios >> ${MOAB_JOBARRAYINDEX}_0_out &
 
-THEANO_FLAGS=device=gpu1,floatX=float32 stdbuf -i0 -o0 -e0 python voltmeleon_run.py --experiment_dir=config_examples/helios-svhn-2/experiment_03 --helios >> ${MOAB_JOBARRAYINDEX}_1_out &
+THEANO_FLAGS=device=gpu1,floatX=float32 stdbuf -i0 -o0 -e0 python voltmeleon_run.py --experiment_dir=config_examples/helios-svhn-2/experiment_07 --helios >> ${MOAB_JOBARRAYINDEX}_1_out &
 
 # taken from
 # http://stackoverflow.com/questions/356100/how-to-wait-in-bash-for-several-subprocesses-to-finish-and-return-exit-code-0

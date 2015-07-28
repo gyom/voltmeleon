@@ -165,16 +165,30 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
 
                     for (name, param_var) in self.D_params.items():
                         param_value = self.client.pull_split_param(name) * np.float32(self.D_rescale_factor_exo_dropout.get(name, 1.0))
+                        # Works.
                         shape = param_var.get_value(borrow=True, return_internal_type=True).shape
-                        
-                        if True:
-                            print "Reading split parameter %s from server." % name
-                            print "The variable on the GPU has shape : %s" % str(shape)
-                            print "The parameter read has shape : %s" % str(param_value.shape)
-                            print "The variable read from the GPU has shape : %s" % str(param_var.get_value().shape)
-                            print ""
+                        # More expensive. Has to be correct.
+                        #    shape = param_var.get_value().shape
+                        # Also works.
+                        #    shape = param_var.shape.eval()
 
-                        #shape = param_var.shape.eval()
+                        if False:
+                            print "Reading split parameter %s from server." % name
+                            print "The parameter read has shape : %s" % str(param_value.shape)
+                            print "The variable on the GPU has shape : %s" % str(param_var.get_value(borrow=True, return_internal_type=True).shape)
+                            print "The variable read from the GPU has shape : %s" % str(param_var.get_value().shape)
+                            print "param_var.shape.eval() is : %s" % str(param_var.shape.eval())
+                            print ""
+                            print ""
+                            print "indices = client.splits_indices[name]"
+                            indices = self.client.splits_indices[name]
+                            print indices
+                            print "indices[0].shape : %s" % str(indices[0].shape)
+                            print "indices[1].shape : %s" % str(indices[1].shape)
+                            print "param_desc = client.get_param_desc(name)"
+                            print self.client.get_param_desc(name)
+
+
                         param_var.set_value(param_value.reshape(shape))
                     if self.verbose:
                         print "Client pulling parameters to server."

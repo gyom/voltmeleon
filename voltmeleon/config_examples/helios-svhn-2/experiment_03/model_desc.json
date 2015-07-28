@@ -1,0 +1,20 @@
+{
+	"L_dim_conv_layers" : [50, 100, 150, 200, 250, 300, 350],
+	"L_filter_size" : [[2,2], [2,2], [2,2], [2,2], [2,2], [2,2], [2,2]],
+	"L_pool_size" : [null, [2,2], null, [2,2], null, [2,2], null],
+	"L_activation_conv" : ["id", "id", "id", "id", "id", "id", "id"],
+	"L_border_mode" : ["full", "valid", "full", "valid", "full", "valid", "full"],
+
+	"L_dim_full_layers" : [900],
+	"L_activation_full" : ["id"],
+
+	"input_shape" : [3, 32, 32],
+	"output_dim" : 10,
+
+	"L_exo_dropout_conv_layers" : [0.0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+	"L_exo_dropout_full_layers" : [0.5, 0.0],
+
+	"L_endo_dropout_conv_layers" : [0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2],
+	"L_endo_dropout_full_layers" : [0.2, 0.0]
+
+}

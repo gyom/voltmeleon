@@ -172,7 +172,9 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
                         # Also works.
                         #    shape = param_var.shape.eval()
 
-                        if False:
+                        try:
+                            param_var.set_value(param_value.reshape(shape))
+                        except:
                             print "Reading split parameter %s from server." % name
                             print "The parameter read has shape : %s" % str(param_value.shape)
                             print "The variable on the GPU has shape : %s" % str(param_var.get_value(borrow=True, return_internal_type=True).shape)
@@ -187,9 +189,8 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
                             print "indices[1].shape : %s" % str(indices[1].shape)
                             print "param_desc = client.get_param_desc(name)"
                             print self.client.get_param_desc(name)
+                            raise
 
-
-                        param_var.set_value(param_value.reshape(shape))
                     if self.verbose:
                         print "Client pulling parameters to server."
                 else:

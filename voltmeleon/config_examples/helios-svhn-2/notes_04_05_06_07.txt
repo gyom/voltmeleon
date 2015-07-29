@@ -49,3 +49,22 @@ do
 done
 
 
+
+
+
+
+for EXPID in 04 05 06 07 ;
+do
+    rsync -av --delete helios:/home/alaingui/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID} /home/dpln/NIPS/experiments
+    rsync -av helios:/home/alaingui/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/'*_*_out' /home/dpln/NIPS/experiments/experiment_${EXPID}
+done
+
+
+
+for EXPID in 04 05 06 07 ;
+do
+    cd ${HOME}/NIPS/experiments/experiment_${EXPID}
+    python plot.py
+done
+
+

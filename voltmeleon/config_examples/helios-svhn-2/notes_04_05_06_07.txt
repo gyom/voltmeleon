@@ -1,0 +1,51 @@
+
+for EXPID in 04 05 06 07 ;
+do
+    mkdir ${HOME}/NIPS/experiments/${EXPID}
+    cd ${HOME}/NIPS/experiments/${EXPID}
+    git clone https://github.com/gyom/voltmeleon.git voltmeleon
+done
+
+
+for EXPID in 04 05 06 07 ;
+do
+    cd ${HOME}/NIPS/experiments/${EXPID}/voltmeleon
+    git pull
+done
+
+
+
+
+
+
+export EXPID=04
+export EXPPORT=7454
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+export EXPID=05
+export EXPPORT=7455
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+export EXPID=06
+export EXPPORT=7456
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+export EXPID=07
+export EXPPORT=7457
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7450 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7451 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7452 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7453 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+
+
+
+for EXPID in 04 05 06 07 ;
+do
+    cd ${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}
+    msub helios_cluster_script.sh
+done
+
+

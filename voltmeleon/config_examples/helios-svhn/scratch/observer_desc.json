@@ -14,8 +14,8 @@
                  "want_eval_on_test" : false,
                  "want_subset_test" : false},
 
-    "server" : {"hostname" : "10.12.1.3",
-                "port" : 7453,
+    "server" : {"hostname" : "127.0.0.1",
+                "port" : 7000,
                 "alpha" : 1.0 },
 
     "sync" : {  "want_read_only" : true,

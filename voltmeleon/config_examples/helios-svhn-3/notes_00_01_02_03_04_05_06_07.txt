@@ -1,0 +1,98 @@
+
+for EXPID in 00 01 02 03 04 05 06 07 ;
+do
+    mkdir ${HOME}/NIPS/experiments-svhn-3/${EXPID}
+    cd ${HOME}/NIPS/experiments-svhn-3/${EXPID}
+    git clone https://github.com/gyom/voltmeleon.git voltmeleon
+done
+
+
+for EXPID in 00 01 02 03 04 05 06 07 ;
+do
+    cd ${HOME}/NIPS/experiments-svhn-3/${EXPID}/voltmeleon
+    git pull
+done
+
+
+
+
+
+
+export EXPID=08
+export EXPPORT=7458
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+export EXPID=09
+export EXPPORT=7459
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+export EXPID=10
+export EXPPORT=7460
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+export EXPID=11
+export EXPPORT=7461
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+
+export EXPID=12
+export EXPPORT=7462
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+export EXPID=13
+export EXPPORT=7463
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+export EXPID=14
+export EXPPORT=7464
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+export EXPID=15
+export EXPPORT=7465
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+
+
+
+
+
+
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7458 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7459 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7460 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7461 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7462 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7463 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7464 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7465 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+
+
+
+for EXPID in 08 09 10 11 12 13 14 15 ;
+do
+    cd ${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}
+    msub helios_cluster_script.sh
+done
+
+
+
+
+
+
+
+
+
+for EXPID in 08 09 10 11 12 13 14 15 ;
+do
+    rsync -av --delete helios:/home/alaingui/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID} /home/dpln/NIPS/experiments
+    rsync -av helios:/home/alaingui/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/'*_*_out' /home/dpln/NIPS/experiments/experiment_${EXPID}
+done
+
+
+
+for EXPID in 08 09 10 11 12 13 14 15 ;
+do
+    cd ${HOME}/NIPS/experiments/experiment_${EXPID}
+    python plot.py
+done
+
+

@@ -208,6 +208,7 @@ def build_submodel(input_shape,
     # that is why we throw away the first value of L_exo_dropout_full_layers
     L_exo_dropout_full_layers = L_exo_dropout_full_layers[1:]
     pre_dim = output_dim
+    print "When constructing the model, the output_dim of the conv section is %d." % output_dim
     if len(L_dim_full_layers):
         for (dim, activation_str,
             dropout, index) in zip(L_dim_full_layers,
@@ -232,6 +233,7 @@ def build_submodel(input_shape,
 
                 assert 0.0 <= dropout and dropout < 1.0
                 dim = dim - int(dim*dropout)
+                print "When constructing the fully-connected section, we apply dropout %f to add an MLP going from pre_dim %d to dim %d." % (dropout, pre_dim, dim)
 
                 layer_full = MLP(activations=[activation], dims=[pre_dim, dim],
                                  weights_init=Uniform(width=0.1),

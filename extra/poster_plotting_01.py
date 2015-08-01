@@ -68,7 +68,7 @@ def run():
     for endo_dropout in [0.0, 0.5]:
 
         output_path = "six_workers_numbers_endo_dropout_%0.2f.png" % endo_dropout
-        plot(   [expand_desc(e) for e in L_desc if e['endo_dropout'] == endo_dropout,
+        plot(   [expand_desc(e) for e in L_desc if e['endo_dropout'] == endo_dropout],
                 output_path)
         print "Wrote %s." % output_path
 

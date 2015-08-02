@@ -1,4 +1,6 @@
 
+import os
+
 import numpy as np
 
 import matplotlib
@@ -7,6 +9,13 @@ import pylab
 import matplotlib.pyplot as plt
 
 import pickle
+
+import plotting_helper
+#colors = plotting_helper.MplColorHelper('YlOrBr', 0, 20)
+colors = plotting_helper.MplColorHelper('gist_heat', -5, 20)
+
+
+import extract_cumulative_curves
 
 def run():
 
@@ -68,28 +77,69 @@ def run():
     for endo_dropout in [0.0, 0.5]:
 
         output_path = "six_workers_numbers_endo_dropout_%0.2f.png" % endo_dropout
-        plot(   [expand_desc(e) for e in L_desc if e['endo_dropout'] == endo_dropout],
-                output_path)
+        plot_smoothed_original_curves_log_scale([expand_desc(e) for e in L_desc if e['endo_dropout'] == endo_dropout],
+                                                output_path,
+                                                endo_dropout)
         print "Wrote %s." % output_path
 
 
 def expand_desc(desc):
     # loads the files and the data and puts everything in a nice format
 
-    assert os.path.exists(desc['log_file'])
+    assert os.path.exists(desc['log_file']), desc['log_file']
     E = pickle.load(open(desc['log_file'], "r"))
 
     # TO DO : convert this into hitting times for a given list of target values (in log)
 
     #import pdb; pdb.set_trace()
 
-    E.merge(process_D_log(E))
+    A = process_D_log(E)
+
+    #A = extract_cumulative_curves.process_D_log(E)
+
+    #import pdb; pdb.set_trace()
 
     # pick the color and label based on the number of workers
-    E['color'] = "#555555"
-    E['label'] = "patate"
-    
-    return E
+
+    A['color'] = colors.get_rgb(desc['nbr_workers'])
+    A['label'] = "%d" % desc['nbr_workers']
+    A['nbr_workers'] = desc['nbr_workers']
+
+    return A
+
+def plot_smoothed_original_curves_log_scale(L_desc, output_path, endo_dropout):
+
+    dpi = 150
+
+    pylab.hold(True)
+
+    smoothing_window_size = 50
+    for desc in sorted(L_desc, key=lambda e: e['nbr_workers']):
+
+        domain = extract_cumulative_curves.smoothe(desc['domain'], N=smoothing_window_size)
+        image = extract_cumulative_curves.smoothe(desc['image'], N=smoothing_window_size)
+        mask = np.isfinite(image)
+
+        pylab.plot( domain[mask],
+                    image[mask],
+                    c=desc['color'], label=desc['label'])
+
+    pylab.gca().set_xscale('linear')
+    pylab.gca().set_yscale('log')
+
+    pylab.ylim([0.0, 0.2])
+    pylab.xlim([0.0, 10500.0])
+
+    pylab.title("SVHN, training error rate (log scale), dropout %0.2f" % endo_dropout)
+    pylab.xlabel("duration of training")
+    pylab.ylabel("training error rate (log scale)")
+
+    pylab.legend(loc=3)
+    pylab.draw()
+    pylab.savefig(output_path, dpi=dpi)
+    pylab.close()
+
+
 
 def plot(L_desc, output_path):
 
@@ -100,9 +150,11 @@ def plot(L_desc, output_path):
     for desc in L_desc:
         pylab.plot(desc['domain'], desc['image'], c=desc['color'], label=desc['label'])
 
+    pylab.legend()
     pylab.draw()
     pylab.savefig(output_path, dpi=dpi)
     pylab.close()
+
 
 
 
@@ -114,15 +166,15 @@ def process_D_log(D_log):
     image = []
 
     for k in sorted(D_log.keys()):
-        if D_log[k].has_key['train_error_rate']:
+        if D_log[k].has_key('train_error_rate'):
             domain.append(k)
-            image.append(D_log[k]('train_error_rate'))
+            image.append(D_log[k]['train_error_rate'])
 
     return {'domain':domain, 'image':image}
 
 
 
-def __name__ == "__main__":
+if __name__ == "__main__":
     run()
 
 

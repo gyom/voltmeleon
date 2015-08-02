@@ -20,36 +20,36 @@ done
 
 export EXPID=08
 export EXPPORT=7458
-/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments-svhn-3/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-3/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
 
 export EXPID=09
 export EXPPORT=7459
-/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments-svhn-3/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-3/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
 
 export EXPID=10
 export EXPPORT=7460
-/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments-svhn-3/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-3/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
 
 export EXPID=11
 export EXPPORT=7461
-/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments-svhn-3/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-3/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
 
 
 export EXPID=12
 export EXPPORT=7462
-/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments-svhn-3/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-3/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
 
 export EXPID=13
 export EXPPORT=7463
-/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments-svhn-3/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-3/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
 
 export EXPID=14
 export EXPPORT=7464
-/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments-svhn-3/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-3/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
 
 export EXPID=15
 export EXPPORT=7465
-/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
+/home/alaingui/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/experiments-svhn-3/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-3/experiment_${EXPID}/server_params_desc.json --port=${EXPPORT}
 
 
 
@@ -67,9 +67,9 @@ python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 -
 
 
 
-for EXPID in 08 09 10 11 12 13 14 15 ;
+for EXPID in 00 01 02 03 04 05 06 07 ;
 do
-    cd ${HOME}/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID}
+    cd ${HOME}/NIPS/experiments-svhn-3/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-3/experiment_${EXPID}
     msub helios_cluster_script.sh
 done
 
@@ -81,17 +81,17 @@ done
 
 
 
-for EXPID in 08 09 10 11 12 13 14 15 ;
+for EXPID in 00 01 02 03 04 05 06 07 ;
 do
-    rsync -av --delete helios:/home/alaingui/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-2/experiment_${EXPID} /home/dpln/NIPS/experiments
-    rsync -av helios:/home/alaingui/NIPS/experiments/${EXPID}/voltmeleon/voltmeleon/'*_*_out' /home/dpln/NIPS/experiments/experiment_${EXPID}
+    rsync -av --delete helios:/home/alaingui/NIPS/experiments-svhn-3/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-3/experiment_${EXPID} /home/dpln/NIPS/experiments-svhn-3
+    rsync -av helios:/home/alaingui/NIPS/experiments-svhn-3/${EXPID}/voltmeleon/voltmeleon/'*_*_out' /home/dpln/NIPS/experiments-svhn-3/experiment_${EXPID}
 done
 
 
 
-for EXPID in 08 09 10 11 12 13 14 15 ;
+for EXPID in 00 01 02 03 04 05 06 07 ;
 do
-    cd ${HOME}/NIPS/experiments/experiment_${EXPID}
+    cd ${HOME}/NIPS/experiments-svhn-3/experiment_${EXPID}
     python plot.py
 done
 

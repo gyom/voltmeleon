@@ -13,6 +13,24 @@
 # You should have picked a port that nobody else was using.
 
 
+# To run this manually at home (dpln@lambda) :
+#
+#/home/dpln/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/voltmeleon/voltmeleon/config_examples/helios-svhn/scratch/server_params_desc.json --port=7000
+#
+#cd /home/dpln/NIPS/distdrop/bin/
+#python auto_init_server_params.py --server=127.0.0.1 --port=7000 --W_range=0.1 --b_range=0.1 --want_zero_momentum
+#
+#cd ${HOME}/NIPS/voltmeleon/voltmeleon
+#THEANO_FLAGS=device=gpu0,floatX=float32 python voltmeleon_run.py --experiment_dir=config_examples/helios-svhn/scratch
+
+
+
+
+
+
+
+
+
 export EXPERIMENT_DIR=${HOME}/NIPS/experiments/03
 # Assuming that we've previously performed a
 # git clone https://github.com/gyom/voltmeleon.git ${EXPERIMENT_DIR}/voltmeleon

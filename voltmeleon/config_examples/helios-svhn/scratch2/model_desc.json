@@ -1,0 +1,19 @@
+{
+	"L_dim_conv_layers" : [128, 128, 128, 128, 128],
+	"L_filter_size" : [[2,2], [2,2], [2,2], [2,2], [2,2]],
+	"L_pool_size" : [[2,2], [2,2], [2,2], [2,2], [2,2]],
+	"L_activation_conv" : ["rectifier", "rectifier", "rectifier", "rectifier", "rectifier"],
+	"L_border_mode" : ["valid", "valid", "valid", "valid", "valid"],
+
+	"L_dim_full_layers" : [64],
+	"L_activation_full" : ["rectifier"],
+
+	"input_shape" : [3, 32, 32],
+	"output_dim" : 10,
+
+	"L_exo_dropout_conv_layers" : [0.0, 0.50, 0.50, 0.50, 0.50],
+	"L_exo_dropout_full_layers" : [0.50, 0.0],
+
+	"L_endo_dropout_conv_layers" : [0.0, 0.5, 0.5, 0.5, 0.5],
+	"L_endo_dropout_full_layers" : [0.5, 0.0]
+}

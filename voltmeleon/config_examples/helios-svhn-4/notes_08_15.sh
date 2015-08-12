@@ -91,6 +91,44 @@ done
 
 
 
+export EXPID=08
+export EXPPORT=7408
+python ${HOME}/NIPS/distdrop/bin/save_server_params.py --server=127.0.0.1 --port=${EXPPORT} --save_path=/home/alaingui/NIPS/experiments-svhn-4/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-4/experiment_${EXPID}/final_params.pkl
+
+export EXPID=09
+export EXPPORT=7409
+python ${HOME}/NIPS/distdrop/bin/save_server_params.py --server=127.0.0.1 --port=${EXPPORT} --save_path=/home/alaingui/NIPS/experiments-svhn-4/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-4/experiment_${EXPID}/final_params.pkl
+
+export EXPID=10
+export EXPPORT=7410
+python ${HOME}/NIPS/distdrop/bin/save_server_params.py --server=127.0.0.1 --port=${EXPPORT} --save_path=/home/alaingui/NIPS/experiments-svhn-4/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-4/experiment_${EXPID}/final_params.pkl
+
+export EXPID=11
+export EXPPORT=7411
+python ${HOME}/NIPS/distdrop/bin/save_server_params.py --server=127.0.0.1 --port=${EXPPORT} --save_path=/home/alaingui/NIPS/experiments-svhn-4/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-4/experiment_${EXPID}/final_params.pkl
+
+
+export EXPID=12
+export EXPPORT=7412
+python ${HOME}/NIPS/distdrop/bin/save_server_params.py --server=127.0.0.1 --port=${EXPPORT} --save_path=/home/alaingui/NIPS/experiments-svhn-4/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-4/experiment_${EXPID}/final_params.pkl
+
+export EXPID=13
+export EXPPORT=7413
+python ${HOME}/NIPS/distdrop/bin/save_server_params.py --server=127.0.0.1 --port=${EXPPORT} --save_path=/home/alaingui/NIPS/experiments-svhn-4/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-4/experiment_${EXPID}/final_params.pkl
+
+export EXPID=14
+export EXPPORT=7414
+python ${HOME}/NIPS/distdrop/bin/save_server_params.py --server=127.0.0.1 --port=${EXPPORT} --save_path=/home/alaingui/NIPS/experiments-svhn-4/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-4/experiment_${EXPID}/final_params.pkl
+
+export EXPID=15
+export EXPPORT=7415
+python ${HOME}/NIPS/distdrop/bin/save_server_params.py --server=127.0.0.1 --port=${EXPPORT} --save_path=/home/alaingui/NIPS/experiments-svhn-4/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-4/experiment_${EXPID}/final_params.pkl
+
+
+
+
+
+
 
 for EXPID in 08 09 10 11 12 13 14 15 ;
 do

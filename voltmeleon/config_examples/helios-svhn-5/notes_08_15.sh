@@ -83,11 +83,11 @@ python ${HOME}/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 -
 
 for EXPID in 08 09 10 11 12 13 14 15 ;
 do
-    cd ${HOME}/NIPS/experiments-svhn-5/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-5/experiment_${EXPID}
     # optional initialization here.
     # loading from the previous experiments-svhn-4.
-    python ${HOME}/NIPS/distdrop/bin/load_server_params.py --server=127.0.0.1 --port=74${EXPID} --load_path=${HOME}/NIPS/experiments-svhn-4/experiment_12/final_params.pkl
+    python ${HOME}/NIPS/distdrop/bin/load_server_params.py --server=127.0.0.1 --port=74${EXPID} --load_path=${HOME}/NIPS/experiments-svhn-4/12/voltmeleon/voltmeleon/config_examples/helios-svhn-4/experiment_12/final_params.pkl
 
+    cd ${HOME}/NIPS/experiments-svhn-5/${EXPID}/voltmeleon/voltmeleon/config_examples/helios-svhn-5/experiment_${EXPID}
     msub helios_cluster_script.sh
 done
 

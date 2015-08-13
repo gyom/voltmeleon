@@ -152,3 +152,16 @@ do
 done
 
 
+
+
+
+# run as gyomalin@lambda
+mkdir /home/gyomalin/Dropbox/umontreal_extra/NIPS2015/only_plots_5
+for EXPID in 08 09 10 11 12 13 14 15 ;
+do
+    cp /home/dpln/NIPS/experiments-svhn-5/experiment_${EXPID}/error_rate.png /home/gyomalin/Dropbox/umontreal_extra/NIPS2015/only_plots_5/${EXPID}_error_rate.png
+    cp /home/dpln/NIPS/experiments-svhn-5/experiment_${EXPID}/cost.png /home/gyomalin/Dropbox/umontreal_extra/NIPS2015/only_plots_5/${EXPID}_cost.png
+done
+
+
+

@@ -76,10 +76,12 @@ def run():
 
     for endo_dropout in [0.0, 0.5]:
 
-        output_path = "six_workers_numbers_endo_dropout_%0.2f.png" % endo_dropout
+        smoothing_window_size = 50
+        output_path = "six_workers_numbers_endo_dropout_%d_%d.png" % (int(endo_dropout*100), smoothing_window_size)
         plot_smoothed_original_curves_log_scale([expand_desc(e) for e in L_desc if e['endo_dropout'] == endo_dropout],
                                                 output_path,
-                                                endo_dropout)
+                                                endo_dropout,
+                                                smoothing_window_size)
         print "Wrote %s." % output_path
 
 
@@ -107,13 +109,12 @@ def expand_desc(desc):
 
     return A
 
-def plot_smoothed_original_curves_log_scale(L_desc, output_path, endo_dropout):
+def plot_smoothed_original_curves_log_scale(L_desc, output_path, endo_dropout, smoothing_window_size):
 
-    dpi = 150
+    dpi = 300
 
     pylab.hold(True)
 
-    smoothing_window_size = 50
     for desc in sorted(L_desc, key=lambda e: e['nbr_workers']):
 
         domain = extract_cumulative_curves.smoothe(desc['domain'], N=smoothing_window_size)

@@ -107,6 +107,8 @@ def main(argv):
             assert False, "unhandled option"
 
 
+    #print "output_server_params_desc_path is %s" % output_server_params_desc_path
+
     run(experiment_dir, output_server_params_desc_path=output_server_params_desc_path, want_observer_mode=want_observer_mode, running_on_helios=running_on_helios)
 
 

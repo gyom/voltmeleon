@@ -55,15 +55,29 @@ def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, 
     
     print "Time has elapsed. Going to kill the processes."
 
+    L_out = []
+
     for pro in L_client_processes:
+        L_out.append(pro.communicate(input=None))
         print "Killing pid %d with SIGTERM." % pro.pid
         os.killpg(pro.pid, signal.SIGTERM)  # Send the signal to all the process groups
         time.sleep(5)
+        L_out.append(pro.communicate(input=None))      
         print "Killing pid %d with SIGTERM again (in case Blocks caught it)." % pro.pid
         os.killpg(pro.pid, signal.SIGTERM)  # Send the signal to all the process groups
         time.sleep(5)
+        L_out.append(pro.communicate(input=None))        
         os.killpg(pro.pid, signal.SIGTERM)  # Send the signal to all the process groups
         pro.wait()
+
+    print "----------------------------------------"
+    for e in L_out:
+        print e
+    print "----------------------------------------"
+
+    #import pickle
+    #pickle.dump(L_out, "")
+
 
 def run():
 

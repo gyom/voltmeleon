@@ -41,7 +41,7 @@ def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, 
         else:
             # The os.setsid() is passed in the argument preexec_fn so
             # it's run after the fork() and before  exec() to run the shell.
-            pro = subprocess.Popen(cmd, stdout=subprocess.PIPE, 
+            pro = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    shell=True, preexec_fn=os.setsid) 
             L_client_processes.append(pro)
 
@@ -52,34 +52,34 @@ def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, 
     timestamp_start = time.time()
     while time.time() - timestamp_start < duration_in_secs:
         # sleep for 5 seconds until time has elapsed
-        print "sleep for 5 seconds until time has elapsed : %0.2f NOT YET LESS THAN %0.2f" % (time.time() - timestamp_start, duration_in_secs)
+        print "sleep for 5 seconds until time has elapsed : %0.2f < %0.2f" % (time.time() - timestamp_start, duration_in_secs)
         time.sleep(5)
-        for (k, (L, pro)) in enumerate(zip(L_out, L_client_processes)):
-            A = pro.communicate(input=None)
-            print "process %d output : " % k
-            print A
-            L.append(A)
+        #for (k, (L, pro)) in enumerate(zip(L_out, L_client_processes)):
+        #    A = pro.communicate(input=None)
+        #    print "process %d output : " % k
+        #    print A
+        #    L.append(A)
 
     print "Time has elapsed. Going to kill the processes."
 
 
     for pro in L_client_processes:
-        L_out.append(pro.communicate(input=None))
+        #L_out.append(pro.communicate(input=None))
         print "Killing pid %d with SIGTERM." % pro.pid
         os.killpg(pro.pid, signal.SIGTERM)  # Send the signal to all the process groups
         time.sleep(5)
-        L_out.append(pro.communicate(input=None))      
+        #L_out.append(pro.communicate(input=None))      
         print "Killing pid %d with SIGKILL again (in case Blocks caught it)." % pro.pid
         os.killpg(pro.pid, signal.SIGKILL)  # Send the signal to all the process groups
-        time.sleep(5)
-        L_out.append(pro.communicate(input=None))        
+        time.sleep(5)    
         os.killpg(pro.pid, signal.SIGKILL)  # Send the signal to all the process groups
-        pro.wait()
+        #pro.wait()
+        L_out.append(pro.communicate(input=None))
 
-    #print "----------------------------------------"
-    #for e in L_out:
-    #    print e
-    #print "----------------------------------------"
+    print "----------------------------------------"
+    for e in L_out:
+        print e
+    print "----------------------------------------"
 
     #import pickle
     #pickle.dump(L_out, "")

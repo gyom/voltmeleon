@@ -14,7 +14,7 @@
                  "want_eval_on_test" : false,
                  "want_subset_test" : false},
 
-    "server" : {"hostname" : "127.0.1.2",
+    "server" : {"hostname" : "127.0.0.1",
 		        "port" : 7000,
 		        "alpha" : 0.5 },
 

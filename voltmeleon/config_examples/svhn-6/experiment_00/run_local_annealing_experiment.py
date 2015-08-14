@@ -72,6 +72,8 @@ def run():
     nbr_clients = 4
     want_dry_run = False
     want_observer = True
+    if want_observer:
+        nbr_clients = nbr_clients + 1
 
     voltmeleon_root_dir = "/home/dpln/NIPS/voltmeleon"
 

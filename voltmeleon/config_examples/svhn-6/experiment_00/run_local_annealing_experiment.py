@@ -80,13 +80,15 @@ def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, 
 
     for (jobid, (out, err)) in zip(range(jobid_offset, jobid_offset + nbr_clients), L_out):
 
-        with open("worker_output_%d_out.txt" % jobid, 'w') as f:
+        filename_out = "worker_output_%d_out.txt" % jobid
+        with open(filename_out % jobid, 'w') as f:
             f.write(out)
+        print "Wrote %s." % filename_out
 
-        with open("worker_output_%d_err.txt" % jobid, 'w') as f:
+        filename_err = "worker_output_%d_err.txt"
+        with open(filename_err % jobid, 'w') as f:
             f.write(err)
-
-
+        print "Wrote %s." % filename_out
 
 
 

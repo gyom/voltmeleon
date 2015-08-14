@@ -96,7 +96,7 @@ def run():
     endo_drop = 0.5
 
     #duration_in_secs = 20*60
-    duration_in_secs = 20
+    duration_in_secs = 60
     L_exo_drop = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
 
     #duration_in_secs = 5*60

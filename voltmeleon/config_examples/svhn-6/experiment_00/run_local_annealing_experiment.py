@@ -52,9 +52,11 @@ def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, 
     timestamp_start = time.time()
     while time.time() - timestamp_start < duration_in_secs:
         # sleep for 5 seconds until time has elapsed
+        print "sleep for 5 seconds until time has elapsed : %0.2f NOT YET LESS THAN %0.2f" % (time.time() - timestamp_start, duration_in_secs)
         time.sleep(5)
-        for (L, pro) in zip(L_out, L_client_processes):
+        for (k, (L, pro)) in enumerate(zip(L_out, L_client_processes)):
             A = pro.communicate(input=None)
+            print "process %d output : " % k
             print A
             L.append(A)
 
@@ -67,11 +69,11 @@ def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, 
         os.killpg(pro.pid, signal.SIGTERM)  # Send the signal to all the process groups
         time.sleep(5)
         L_out.append(pro.communicate(input=None))      
-        print "Killing pid %d with SIGTERM again (in case Blocks caught it)." % pro.pid
-        os.killpg(pro.pid, signal.SIGTERM)  # Send the signal to all the process groups
+        print "Killing pid %d with SIGKILL again (in case Blocks caught it)." % pro.pid
+        os.killpg(pro.pid, signal.SIGKILL)  # Send the signal to all the process groups
         time.sleep(5)
         L_out.append(pro.communicate(input=None))        
-        os.killpg(pro.pid, signal.SIGTERM)  # Send the signal to all the process groups
+        os.killpg(pro.pid, signal.SIGKILL)  # Send the signal to all the process groups
         pro.wait()
 
     #print "----------------------------------------"

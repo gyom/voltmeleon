@@ -12,7 +12,29 @@ def usage():
     print "python voltmeleon_run.py --experiment_dir=config_examples/experiment_04 --obs"
 
 
-def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=False, running_on_helios=False):
+def override_special_case_environment_variable(model_desc):
+
+    L_subs = [  ('L_exo_dropout_conv_layers',  "VOLTMELEON_MODEL_DESC_EXO_DROP"),
+                ('L_exo_dropout_full_layers',  "VOLTMELEON_MODEL_DESC_EXO_DROP"),
+                ('L_endo_dropout_conv_layers', "VOLTMELEON_MODEL_DESC_ENDO_DROP"),
+                ('L_endo_dropout_full_layers', "VOLTMELEON_MODEL_DESC_ENDO_DROP")]
+
+    for (model_desc_key, environ_key) in L_subs:
+
+        if os.environ.has_key(environ_key):
+            v = float(os.environ[environ_key])
+            # Leave the value alone if it's not equal to `environ_key`.
+            # If it is equal to `environ_key`, then just replace it with
+            # the floating point variable contained in the environment.
+            model_desc[model_desc_key] = [(e if e != environ_key else v) for e in model_desc[model_desc_key] ]
+
+            print "model_desc[%s] is now %s" % (model_desc_key, str(model_desc[model_desc_key]))
+
+    # unnecessary since we mutate the argument
+    return model_desc
+
+
+def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=False, running_on_helios=False, jobid=None):
 
     if running_on_helios:
         # We have to do something special here because all the jobs
@@ -30,6 +52,8 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
         else:
             print "We are running on helios."
         jobid = helios.get_id()
+    elif jobid is not None:
+        assert type(jobid) == int
     else:
         import numpy as np
         jobid = np.random.randint(low=0, high=100000)
@@ -51,6 +75,10 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
 
     import json
     model_desc = json.load(open(model_desc_file, "r"))
+    model_desc = override_special_case_environment_variable(model_desc)
+
+    print model_desc
+
     train_desc = json.load(open(train_desc_file, "r"))
     # hardcoded path for blocks saving a zip file
 
@@ -75,7 +103,7 @@ def main(argv):
     """
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hv", ["experiment_dir=", "output_server_params_desc_path=", "obs", "want_observer_mode", "helios"])
+        opts, args = getopt.getopt(sys.argv[1:], "hv", ["experiment_dir=", "output_server_params_desc_path=", "obs", "want_observer_mode", "helios", "jobid="])
 
     except getopt.GetoptError as err:
         # print help information and exit:
@@ -87,6 +115,7 @@ def main(argv):
     output_server_params_desc_path = None
     want_observer_mode = False
     running_on_helios = False
+    jobid = None
 
     verbose = False
     for o, a in opts:
@@ -103,13 +132,15 @@ def main(argv):
             want_observer_mode = True
         elif o in ("--helios"):
             running_on_helios = True
+        elif o in ("--jobid"):
+            jobid = int(a)            
         else:
             assert False, "unhandled option"
 
 
     #print "output_server_params_desc_path is %s" % output_server_params_desc_path
 
-    run(experiment_dir, output_server_params_desc_path=output_server_params_desc_path, want_observer_mode=want_observer_mode, running_on_helios=running_on_helios)
+    run(experiment_dir, output_server_params_desc_path=output_server_params_desc_path, want_observer_mode=want_observer_mode, running_on_helios=running_on_helios, jobid=jobid)
 
 
 

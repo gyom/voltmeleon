@@ -84,7 +84,7 @@ def run():
     init_server_params()
 
     nbr_clients = 4
-    want_dry_run = True
+    want_dry_run = False
     want_observer = True
     if want_observer:
         nbr_clients = nbr_clients + 1

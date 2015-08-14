@@ -48,14 +48,18 @@ def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, 
 
     print "Now running %d clients." % nbr_clients
 
+    L_out = [[] for pro in L_client_processes]
     timestamp_start = time.time()
     while time.time() - timestamp_start < duration_in_secs:
         # sleep for 5 seconds until time has elapsed
         time.sleep(5)
-    
+        for (L, pro) in zip(L_out, L_client_processes):
+            A = pro.communicate(input=None)
+            print A
+            L.append(A)
+
     print "Time has elapsed. Going to kill the processes."
 
-    L_out = []
 
     for pro in L_client_processes:
         L_out.append(pro.communicate(input=None))
@@ -70,10 +74,10 @@ def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, 
         os.killpg(pro.pid, signal.SIGTERM)  # Send the signal to all the process groups
         pro.wait()
 
-    print "----------------------------------------"
-    for e in L_out:
-        print e
-    print "----------------------------------------"
+    #print "----------------------------------------"
+    #for e in L_out:
+    #    print e
+    #print "----------------------------------------"
 
     #import pickle
     #pickle.dump(L_out, "")
@@ -84,7 +88,7 @@ def run():
     init_server_params()
 
     nbr_clients = 4
-    want_dry_run = True
+    want_dry_run = False
     want_observer = True
     if want_observer:
         nbr_clients = nbr_clients + 1

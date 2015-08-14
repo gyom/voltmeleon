@@ -76,13 +76,18 @@ def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, 
         #pro.wait()
         L_out.append(pro.communicate(input=None))
 
-    print "----------------------------------------"
-    for e in L_out:
-        print e
-    print "----------------------------------------"
 
-    #import pickle
-    #pickle.dump(L_out, "")
+
+    for (jobid, (out, err)) in zip(range(jobid_offset, jobid_offset + nbr_clients), L_out):
+
+        with open("worker_output_%d_out.txt" % jobid, 'w') as f:
+            f.write(out)
+
+        with open("worker_output_%d_err.txt" % jobid, 'w') as f:
+            f.write(err)
+
+
+
 
 
 def run():

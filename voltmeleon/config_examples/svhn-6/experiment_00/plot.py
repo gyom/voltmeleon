@@ -104,7 +104,8 @@ def read_results_and_plot(experiment_dir, criterion):
                     color = c2[1]
                     h = pylab.plot(domain - step_min, D_logged[k], c=color)
     
-    plt.legend()
+    # with so many observers, let's skip the legend
+    #plt.legend()
 
     if criterion == 'error_rate':
         pylab.ylim(ymin=0.0, ymax=1.0)

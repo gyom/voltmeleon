@@ -69,11 +69,9 @@ def run():
 
     init_server_params()
 
-    #duration_in_secs = 60*60
-    duration_in_secs = 5*60
-
     nbr_clients = 4
     want_dry_run = False
+    want_observer = True
 
     voltmeleon_root_dir = "/home/dpln/NIPS/voltmeleon"
 
@@ -81,11 +79,16 @@ def run():
 
     endo_drop = 0.5
 
-    L_exo_drop = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
+    duration_in_secs = 60*60
+    L_exo_drop = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
+
+    #duration_in_secs = 5*60
+    #L_exo_drop = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
+
     L_jobid_offset = 10 * np.arange(0, len(L_exo_drop))
 
     for exo_drop, jobid_offset in zip(L_exo_drop, L_jobid_offset):
-        run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, jobid_offset, exo_drop=exo_drop, endo_drop=endo_drop, want_dry_run=want_dry_run)
+        run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, jobid_offset, exo_drop=exo_drop, endo_drop=endo_drop, want_dry_run=want_dry_run, want_observer=want_observer)
 
 if __name__ == "__main__":
     run()

@@ -14,7 +14,7 @@ def init_server_params():
     print subprocess.check_output(cmd, shell=True)
 
 
-def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, jobid_offset, exo_drop=None, endo_drop=None, want_dry_run=False):
+def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, jobid_offset, exo_drop=None, endo_drop=None, want_dry_run=False, want_observer=False):
 
     L_client_processes = []
 
@@ -31,6 +31,9 @@ def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, 
         script_path = os.path.join(voltmeleon_root_dir, "voltmeleon/voltmeleon_run.py")
 
         cmd = "%s %s python %s --experiment_dir=%s --jobid=%d" % (model_desc_override_flags, theano_flags, script_path, config_dir, jobid)
+        if want_observer and (jobid == jobid_offset):
+            cmd = cmd + "  --want_observer_mode  "
+
         print "Running subprocess: \n\t%s" % cmd
 
         if want_dry_run:

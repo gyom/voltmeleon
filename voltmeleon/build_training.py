@@ -32,6 +32,22 @@ class Timestamp(SimpleExtension):
         current_row['timestamp'] = time.time()
 
 
+
+class StopAfterTimeElapsed(SimpleExtension):
+    def __init__(self, total_duration, **kwargs):
+        super(StopAfterTimeElapsed, self).__init__(**kwargs)
+        self.timestamp_start_of_experiment = time.time()
+        self.total_duration = total_duration
+
+    def do(self, which_callback, *args):
+        if time.time() - self.timestamp_start_of_experiment < self.total_duration:
+            pass
+        else:
+            # a bit abrupt, but it should work fine
+            print "Exiting because self.total_duration seconds have elapsed."
+            exit()
+
+
 def build_training(cg, error_rate, cost, step_rule,
                    weight_decay_factor=0.0,
                    hdf5_file=None,
@@ -45,7 +61,12 @@ def build_training(cg, error_rate, cost, step_rule,
                    server_sync_extension=None,
                    server_sync_initial_read_extension=None,
                    want_save_model_best_valid_model=False,
-                   monitor_interval_nbr_batches=10):
+                   monitor_interval_nbr_batches=10,
+                   force_quit_after_total_duration=None):
+
+    # `force_quit_after_total_duration` is an optional argument, which is listed in seconds
+    # and calls `quit()` if the experiment runs for longer than expected.
+    # This is a kludge to be able to gently exit and re-launch with different parameters.
 
     if 1e-8 < weight_decay_factor:
         weight_decay_factor = sum([(W**2).mean() for W in VariableFilter(roles=[WEIGHT])(cg.variables)])
@@ -105,7 +126,8 @@ def build_training(cg, error_rate, cost, step_rule,
                      Timestamp(every_n_batches=monitor_interval_nbr_batches),
                      Printing(every_n_batches=monitor_interval_nbr_batches)] )
 
-
+    if force_quit_after_total_duration is not None:
+        extensions.append(StopAfterTimeElapsed(every_n_batches=1, total_duration=force_quit_after_total_duration))
 
 
     if server_sync_extension is not None:

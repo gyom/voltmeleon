@@ -30,7 +30,7 @@ def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, 
 
         script_path = os.path.join(voltmeleon_root_dir, "voltmeleon/voltmeleon_run.py")
 
-        cmd = "%s %s python %s --experiment_dir=%s --jobid=%d" % (model_desc_override_flags, theano_flags, script_path, config_dir, jobid)
+        cmd = "%s %s python %s --experiment_dir=%s --jobid=%d --force_quit_after_total_duration=%d" % (model_desc_override_flags, theano_flags, script_path, config_dir, jobid, duration_in_secs)
         if want_observer and (jobid == jobid_offset):
             cmd = cmd + "  --want_observer_mode  "
 
@@ -64,17 +64,18 @@ def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, 
 
 
     for pro in L_client_processes:
-        #L_out.append(pro.communicate(input=None))
-        print "Killing pid %d with SIGTERM." % pro.pid
-        os.killpg(pro.pid, signal.SIGTERM)  # Send the signal to all the process groups
-        time.sleep(5)
-        #L_out.append(pro.communicate(input=None))      
-        print "Killing pid %d with SIGKILL again (in case Blocks caught it)." % pro.pid
-        os.killpg(pro.pid, signal.SIGKILL)  # Send the signal to all the process groups
-        time.sleep(5)    
-        os.killpg(pro.pid, signal.SIGKILL)  # Send the signal to all the process groups
-        #pro.wait()
         L_out.append(pro.communicate(input=None))
+        pro.wait()
+        print "Waited for process pid %d." % pro.pid
+        #print "Killing pid %d with SIGTERM." % pro.pid
+        #os.killpg(pro.pid, signal.SIGTERM)  # Send the signal to all the process groups
+        #time.sleep(5)
+        #print "Killing pid %d with SIGKILL again (in case Blocks caught it)." % pro.pid
+        #os.killpg(pro.pid, signal.SIGKILL)  # Send the signal to all the process groups
+        #time.sleep(5)    
+        #os.killpg(pro.pid, signal.SIGKILL)  # Send the signal to all the process groups
+        ##pro.wait()
+        #L_out.append(pro.communicate(input=None))
 
 
     #for (jobid, (out, err)) in zip(range(jobid_offset, jobid_offset + nbr_clients), L_out):
@@ -107,7 +108,7 @@ def run():
 
     endo_drop = 0.5
 
-    duration_in_secs = 20*60
+    duration_in_secs = 5*60
     #duration_in_secs = 60
     L_exo_drop = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
 

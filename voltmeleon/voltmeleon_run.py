@@ -34,7 +34,7 @@ def override_special_case_environment_variable(model_desc):
     return model_desc
 
 
-def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=False, running_on_helios=False, jobid=None):
+def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=False, running_on_helios=False, jobid=None, force_quit_after_total_duration=None):
 
     if running_on_helios:
         # We have to do something special here because all the jobs
@@ -95,7 +95,7 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
         print "saving path already exists. you have setup something wrong in your experiment."
         exit()
 
-    client_runner.run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=output_server_params_desc_path)
+    client_runner.run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=output_server_params_desc_path, force_quit_after_total_duration=force_quit_after_total_duration)
 
 
 def main(argv):
@@ -103,7 +103,7 @@ def main(argv):
     """
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hv", ["experiment_dir=", "output_server_params_desc_path=", "obs", "want_observer_mode", "helios", "jobid="])
+        opts, args = getopt.getopt(sys.argv[1:], "hv", ["experiment_dir=", "output_server_params_desc_path=", "obs", "want_observer_mode", "helios", "jobid=", "force_quit_after_total_duration="])
 
     except getopt.GetoptError as err:
         # print help information and exit:
@@ -116,6 +116,7 @@ def main(argv):
     want_observer_mode = False
     running_on_helios = False
     jobid = None
+    force_quit_after_total_duration = None
 
     verbose = False
     for o, a in opts:
@@ -133,14 +134,16 @@ def main(argv):
         elif o in ("--helios"):
             running_on_helios = True
         elif o in ("--jobid"):
-            jobid = int(a)            
+            jobid = int(a)
+        elif o in ("--force_quit_after_total_duration"):
+            force_quit_after_total_duration = float(a)
         else:
             assert False, "unhandled option"
 
 
     #print "output_server_params_desc_path is %s" % output_server_params_desc_path
 
-    run(experiment_dir, output_server_params_desc_path=output_server_params_desc_path, want_observer_mode=want_observer_mode, running_on_helios=running_on_helios, jobid=jobid)
+    run(experiment_dir, output_server_params_desc_path=output_server_params_desc_path, want_observer_mode=want_observer_mode, running_on_helios=running_on_helios, jobid=jobid, force_quit_after_total_duration=force_quit_after_total_duration)
 
 
 

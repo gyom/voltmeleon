@@ -111,7 +111,7 @@ def build_model_adjusting_for_potential_undo_exo_dropout(model_desc, want_undo_e
 
 
 
-def run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=None):
+def run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=None, force_quit_after_total_duration=None):
 
     # it's okay to not use the `experiment_dir` argument directly, for now
 
@@ -278,6 +278,7 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
         server_sync_extension_auto_timing = None
         print "WARNING : No client. Setting the sync extensions to be None."
 
+
     main_loop = build_training.build_training(cg, error_rate, cost, step_rule,
                                               weight_decay_factor=train_desc['weight_decay_factor'],
                                               hdf5_file=dataset_desc['hdf5_file'],
@@ -290,7 +291,8 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
                                               saving_path=saving_path,
                                               server_sync_extension=server_sync_extension_auto_timing,
                                               server_sync_initial_read_extension=server_sync_initial_read_extension,
-                                              monitor_interval_nbr_batches=train_desc['monitor_interval_nbr_batches'])
+                                              monitor_interval_nbr_batches=train_desc['monitor_interval_nbr_batches'],
+                                              force_quit_after_total_duration=force_quit_after_total_duration)
 
     main_loop.run()
 

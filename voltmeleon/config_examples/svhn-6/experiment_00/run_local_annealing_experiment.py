@@ -14,6 +14,11 @@ def init_server_params():
     print subprocess.check_output(cmd, shell=True)
 
 
+def save_server_params(save_path):
+    cmd = "python /home/dpln/NIPS/distdrop/bin/save_server_params.py --server=127.0.0.1 --port=7000 --save_path=%s" % (save_path,)
+    print subprocess.check_output(cmd, shell=True)
+
+
 def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, jobid_offset, exo_drop=None, endo_drop=None, want_dry_run=False, want_observer=False):
 
     L_client_processes = []
@@ -62,6 +67,9 @@ def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, 
 
     print "Time has elapsed. Going to kill the processes."
 
+    save_path = os.path.join(config_dir, "jobid_offset_%d.pkl" % jobid_offset)
+    save_server_params(save_path)
+    #print "Saved model params to %s." % save_path
 
     for pro in L_client_processes:
         L_out.append(pro.communicate(input=None))

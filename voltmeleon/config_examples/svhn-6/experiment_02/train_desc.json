@@ -1,6 +1,6 @@
 {
     "batch_size" : 128,
-    "nbr_epochs": 200,
+    "nbr_epochs": 200000,
     "monitor_interval_nbr_batches" : 10,
     "weight_decay_factor" : 0.00001,
 

@@ -130,12 +130,12 @@ def find_result_files(dir):
 
     L_result_files = []
     for path in L_files:
-        m = re.match(r".*/log_(\d\d)_log", path)
+        m = re.match(r".*/log_(\d+)_log", path)
         if m:
             L_result_files.append({'path' : path, 'worker_id' : int(m.group(1)), 'observer_mode' : False})
 
         # yeah, the observer uses a slightly different name for the log
-        m = re.match(r".*/log_(\d\d)_obs_log", path)
+        m = re.match(r".*/log_(\d+)_obs_log", path)
         if m:
             L_result_files.append({'path' : path, 'worker_id' : int(m.group(1)), 'observer_mode' : True})
 

@@ -43,75 +43,51 @@ def set_all_exo_dropout_in_model_desc_to_zero(model_desc):
 
 
 
-def build_model_adjusting_for_potential_undo_exo_dropout(model_desc, want_undo_exo_dropout):
-
-    def exo_dropout_helper(model_desc):
-        # Add a 0.0 at the end because we keep all the outputs, and that's not a number
-        # that's provided by the L_endo_dropout_full_layers variable.
-        L_exo_dropout = model_desc['L_exo_dropout_conv_layers'] + model_desc['L_exo_dropout_full_layers'] + [0.0]
-
-        D_dropout_probs = dict( ("layer_%d" % layer_number, e) for (layer_number, e) in enumerate(zip(L_exo_dropout, L_exo_dropout[1:])) )
-        return L_exo_dropout, D_dropout_probs
-
+def build_model_with_endo_adjustments(model_desc, server_params_desc=None, want_undo_exo_dropout=False):
 
     if want_undo_exo_dropout:
-        print "Overriding EXO dropout as requested by the train_desc."
-
-        # This is a more complicated operation because it requires us
-        # to compensate for what the model with exo dropout would do.
-        # The shortest way to do this is to build a first model WITH the exo dropout,
-        # and then build the real one WITHOUT exo dropout afterwards.
-
-
-        # building a model with the exo dropout active just to see what the shapes will be
-        (_, _, _, D_params_dropped, _) = build_model.build_submodel(**model_desc)
-
         set_all_exo_dropout_in_model_desc_to_zero(model_desc)
-    
-        # this is the actual built model that we are going to use
-        (cg, error_rate, cost, D_params, D_kind) = build_model.build_submodel(**model_desc)
 
-        # refresh the values now that we have overridden the config to contain zeros
-        L_exo_dropout, D_dropout_probs = exo_dropout_helper(model_desc)
+    # That `server_params_desc` argument is something that we can only have
+    # if we've run the code before. It comes from the "server_params_desc.json" file
+    # that describes all the parameters in the full model.
+    #
+    # Instead of constructing the model twice, we use that description of
+    # the parameters to simply evaluate the ratio between certain shapes.
 
-        D_rescale_factor_exo_dropout = {}
-        for name, param_dropped in D_params_dropped.items():
-            param = D_params[name]
-            
-            if D_kind[name] == "FULLY_CONNECTED_WEIGHTS":
-                # the input dimension is the 0
-                s = 1.0 * param_dropped.get_value().shape[0] / param.get_value().shape[0]
-                D_rescale_factor_exo_dropout[name] = s
-                print "Rescaling parameter %s by %f to compensate for exo dropout." % (name, s)
-            elif D_kind[name] == "CONV_FILTER_WEIGHTS":
-                # the input dimension is the 1
-                s = 1.0 * param_dropped.get_value().shape[1] / param.get_value().shape[1]
-                D_rescale_factor_exo_dropout[name] = s
-                print "Rescaling parameter %s by %f to compensate for exo dropout." % (name, s)
-            else:
-                print "No need to rescale parameter %s to compensate for exo dropout." % name
+    (cg, error_rate, cost, D_params, D_kind) = build_model.build_submodel(**model_desc)
 
-        del _
-        del D_params_dropped
+    D_rescale_factor_exo_dropout = {}
+    for name, param_full in server_params_desc.items():
+        param = D_params[name]
+        
+        if D_kind[name] == "FULLY_CONNECTED_WEIGHTS":
+            # the input dimension is the 0
+            s = 1.0 * param_full.shape[0] / param.get_value().shape[0]
+            D_rescale_factor_exo_dropout[name] = s
+            print "Rescaling parameter %s by %f when read from server, to compensate for exo dropout." % (name, s)
+        elif D_kind[name] == "CONV_FILTER_WEIGHTS":
+            # the input dimension is the 1
+            s = 1.0 * param_full.shape[1] / param.get_value().shape[1]
+            D_rescale_factor_exo_dropout[name] = s
+            print "Rescaling parameter %s by %f when read from server, to compensate for exo dropout." % (name, s)
+        else:
+            print "No need to rescale parameter %s to compensate for exo dropout." % name
 
-    else:
-        # This means that we are NOT compensating for the removal of the exo dropout.
-        # This is the most common branch taken. All the clients, except the "observers",
-        # will take this branch.
-        L_exo_dropout, D_dropout_probs = exo_dropout_helper(model_desc)
-        D_rescale_factor_exo_dropout = {}
-
-        (cg, error_rate, cost, D_params, D_kind) = build_model.build_submodel(**model_desc)
-
+    # Add a 0.0 at the end because we keep all the outputs, and that's not a number
+    # that's provided by the L_endo_dropout_full_layers variable.
+    L_exo_dropout = model_desc['L_exo_dropout_conv_layers'] + model_desc['L_exo_dropout_full_layers'] + [0.0]
+    D_dropout_probs = dict( ("layer_%d" % layer_number, e) for (layer_number, e) in enumerate(zip(L_exo_dropout, L_exo_dropout[1:])) )
 
     return (cg, error_rate, cost,
             D_params, D_kind,
-            L_exo_dropout,
-            D_dropout_probs, D_rescale_factor_exo_dropout)
+            L_exo_dropout, D_dropout_probs,
+            D_rescale_factor_exo_dropout)
 
 
 
-def run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=None, force_quit_after_total_duration=None):
+
+def run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=None, force_quit_after_total_duration=None, server_params_desc=None):
 
     # it's okay to not use the `experiment_dir` argument directly, for now
 
@@ -156,12 +132,10 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
             if model_desc.has_key(k):
                 model_desc[k] = [0.0] * len(model_desc[k])
 
-
-
     (cg, error_rate, cost,
      D_params, D_kind,
      L_exo_dropout,
-     D_dropout_probs, D_rescale_factor_exo_dropout) = build_model_adjusting_for_potential_undo_exo_dropout(model_desc, want_undo_exo_dropout)
+     D_dropout_probs, D_rescale_factor_exo_dropout) = build_model_with_endo_adjustments(model_desc, server_params_desc)
 
     # This `D_rescale_factor_exo_dropout` will be used for the blocks extensions.
     # The rest of the returned arguments will be used to setup the other parts of the training.
@@ -263,6 +237,7 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
     server_sync_extension_auto_timing = ServerSyncAutoAdjustTiming( client, D_dropout_probs,
                                                                     D_params,
                                                                     every_n_batches=1, verbose=True,
+                                                                    D_rescale_factor_exo_dropout=D_rescale_factor_exo_dropout,
                                                                     **sync_desc)
 
     import copy
@@ -271,6 +246,7 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
     server_sync_initial_read_extension = ServerSyncAutoAdjustTiming(client, D_dropout_probs,
                                                                     D_params,
                                                                     before_training=True, verbose=True,
+                                                                    D_rescale_factor_exo_dropout=D_rescale_factor_exo_dropout,
                                                                     **sync_desc_override_with_read_only)
 
     if client is None:

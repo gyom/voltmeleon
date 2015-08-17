@@ -34,7 +34,7 @@ def override_special_case_environment_variable(model_desc):
     return model_desc
 
 
-def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=False, running_on_helios=False, jobid=None, force_quit_after_total_duration=None):
+def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=False, running_on_helios=False, jobid=None, force_quit_after_total_duration=None, server_params_desc=None):
 
     if running_on_helios:
         # We have to do something special here because all the jobs
@@ -82,7 +82,14 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
     train_desc = json.load(open(train_desc_file, "r"))
     # hardcoded path for blocks saving a zip file
 
-    assert os.path.exists(experiment_dir)
+    # This will never be available on the first time that we run the script,
+    # but it will be available in later runs (while the server is running).
+    server_params_desc_file = os.path.join(experiment_dir, "server_params_desc.json")
+    if os.path.exists(server_params_desc_file):
+        server_params_desc = json.load(open(server_params_desc_file, "r"))
+    else:
+        server_params_desc = None
+    
 
     if want_observer_mode:
         saving_path = os.path.join(experiment_dir, "log_%0.2d_obs" % (jobid ,))
@@ -95,7 +102,7 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
         print "saving path already exists. you have setup something wrong in your experiment."
         exit()
 
-    client_runner.run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=output_server_params_desc_path, force_quit_after_total_duration=force_quit_after_total_duration)
+    client_runner.run(model_desc, train_desc, experiment_dir, saving_path, output_server_params_desc_path=output_server_params_desc_path, force_quit_after_total_duration=force_quit_after_total_duration, server_params_desc=server_params_desc)
 
 
 def main(argv):

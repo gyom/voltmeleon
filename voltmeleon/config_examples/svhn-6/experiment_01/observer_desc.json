@@ -1,0 +1,27 @@
+{
+    "batch_size" : 64,
+    "nbr_epochs": 20000,
+    "monitor_interval_nbr_batches" : 1,
+    "weight_decay_factor" : 0.00001,
+
+    "step_flavor" : {"method" : "noupdates"},
+
+
+
+    "dataset" : {"hdf5_file" : "/home/dpln/data/SVHN/ninjite_h5/all_last_version.h5",
+                 "want_eval_on_valid" : true,
+                 "want_subset_valid" : false,
+                 "want_eval_on_test" : false,
+                 "want_subset_test" : false},
+
+    "server" : {"hostname" : "127.0.0.1",
+                "port" : 7001,
+                "alpha" : 1.0 },
+
+    "sync" : {  "want_read_only" : true,
+                "max_time_ratio_spent" : 1.0,
+                "want_undo_exo_dropout" : true,
+                "want_ignore_endo_dropout" : true},
+
+    "force_quit_after_total_duration" : 300
+}

@@ -10,12 +10,12 @@ import numpy as np
 
 
 def init_server_params():
-    cmd = "python /home/dpln/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7001 --W_range=0.1 --b_range=0.1 --want_zero_momentum"
+    cmd = "python /home/dpln/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7002 --W_range=0.1 --b_range=0.1 --want_zero_momentum"
     print subprocess.check_output(cmd, shell=True)
 
 
 def save_server_params(save_path):
-    cmd = "python /home/dpln/NIPS/distdrop/bin/save_server_params.py --server=127.0.0.1 --port=7001 --save_path=%s" % (save_path,)
+    cmd = "python /home/dpln/NIPS/distdrop/bin/save_server_params.py --server=127.0.0.1 --port=7002 --save_path=%s" % (save_path,)
     print subprocess.check_output(cmd, shell=True)
 
 
@@ -112,7 +112,7 @@ def run():
 
     voltmeleon_root_dir = "/home/dpln/NIPS/voltmeleon"
 
-    config_dir = os.path.join(voltmeleon_root_dir, "voltmeleon/config_examples/svhn-6/experiment_01")
+    config_dir = os.path.join(voltmeleon_root_dir, "voltmeleon/config_examples/svhn-6/experiment_02")
 
     endo_drop = 0.5
 
@@ -135,6 +135,6 @@ if __name__ == "__main__":
 
 """
 
-/home/dpln/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/voltmeleon/voltmeleon/config_examples/svhn-6/experiment_01/server_params_desc.json --port=7001
+/home/dpln/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/voltmeleon/voltmeleon/config_examples/svhn-6/experiment_02/server_params_desc.json --port=7002
 
 """

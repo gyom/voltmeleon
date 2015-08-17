@@ -15,7 +15,7 @@
                  "want_subset_test" : false},
 
     "server" : {"hostname" : "127.0.0.1",
-                "port" : 7001,
+                "port" : 7002,
                 "alpha" : 1.0 },
 
     "sync" : {  "want_read_only" : true,

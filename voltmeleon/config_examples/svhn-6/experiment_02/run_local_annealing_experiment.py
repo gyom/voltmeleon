@@ -67,14 +67,31 @@ def run_clients(duration_in_secs, nbr_clients, voltmeleon_root_dir, config_dir, 
 
     print "Time has elapsed. Going to kill the processes."
 
-    save_path = os.path.join(config_dir, "jobid_offset_%d.pkl" % jobid_offset)
+    try:
+        os.mkdir(os.path.join(config_dir), "saved_params")
+    except:
+        pass
+    save_path = os.path.join(config_dir, "saved_params/jobid_offset_%d.pkl" % jobid_offset)
     save_server_params(save_path)
     #print "Saved model params to %s." % save_path
 
+
+    try:
+        os.mkdir(os.path.join(config_dir), "saved_outputs")
+    except:
+        pass
+
     for pro in L_client_processes:
-        L_out.append(pro.communicate(input=None))
+
+        out_and_err = pro.communicate(input=None)
         pro.wait()
         print "Waited for process pid %d." % pro.pid
+
+        filename_out = os.path.join(config_dir, "saved_outputs/worker_output_%d.pkl" % jobid)
+        pickle.dump(out_and_err, open(filename_out, "w"))
+        print "Wrote %s." % filename_out
+
+
         #print "Killing pid %d with SIGTERM." % pro.pid
         #os.killpg(pro.pid, signal.SIGTERM)  # Send the signal to all the process groups
         #time.sleep(5)

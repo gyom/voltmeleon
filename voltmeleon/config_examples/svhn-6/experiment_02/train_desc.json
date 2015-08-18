@@ -21,7 +21,5 @@
     "sync" : {  "want_read_only" : false,
 	            "max_time_ratio_spent" : 0.33,
 	            "want_undo_exo_dropout" : false,
-                "want_ignore_endo_dropout" : false},
-
-    "force_quit_after_total_duration" : 300
+                "want_ignore_endo_dropout" : false}
 }

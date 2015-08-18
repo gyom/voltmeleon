@@ -44,7 +44,7 @@ class StopAfterTimeElapsed(SimpleExtension):
             pass
         else:
             # a bit abrupt, but it should work fine
-            print "Exiting because self.total_duration seconds have elapsed."
+            print "Exiting because self.total_duration = %d seconds have elapsed." % self.total_duration
             exit()
 
 

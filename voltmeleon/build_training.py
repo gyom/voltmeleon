@@ -13,7 +13,7 @@ from blocks.model import Model
 from fuel.streams import DataStream
 from fuel.schemes import SequentialScheme, ShuffledScheme
 from blocks.main_loop import MainLoop
-from blocks.roles import WEIGHT
+from blocks.roles import WEIGHT, BIAS
 from fuel.datasets.hdf5 import H5PYDataset
 from blocks.utils import shared_floatx
 from schemes import LimitedScheme

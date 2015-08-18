@@ -7,7 +7,7 @@ import signal
 import subprocess
 
 import numpy as np
-
+import pickle
 
 def init_server_params():
     cmd = "python /home/dpln/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7003 --W_range=0.1 --b_range=0.1 --want_zero_momentum"

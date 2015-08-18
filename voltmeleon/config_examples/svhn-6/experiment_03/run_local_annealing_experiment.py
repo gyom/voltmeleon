@@ -10,12 +10,12 @@ import numpy as np
 
 
 def init_server_params():
-    cmd = "python /home/dpln/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7002 --W_range=0.1 --b_range=0.1 --want_zero_momentum"
+    cmd = "python /home/dpln/NIPS/distdrop/bin/auto_init_server_params.py --server=127.0.0.1 --port=7003 --W_range=0.1 --b_range=0.1 --want_zero_momentum"
     print subprocess.check_output(cmd, shell=True)
 
 
 def save_server_params(save_path):
-    cmd = "python /home/dpln/NIPS/distdrop/bin/save_server_params.py --server=127.0.0.1 --port=7002 --save_path=%s" % (save_path,)
+    cmd = "python /home/dpln/NIPS/distdrop/bin/save_server_params.py --server=127.0.0.1 --port=7003 --save_path=%s" % (save_path,)
     print subprocess.check_output(cmd, shell=True)
 
 
@@ -129,16 +129,14 @@ def run():
 
     voltmeleon_root_dir = "/home/dpln/NIPS/voltmeleon"
 
-    config_dir = os.path.join(voltmeleon_root_dir, "voltmeleon/config_examples/svhn-6/experiment_02")
+    config_dir = os.path.join(voltmeleon_root_dir, "voltmeleon/config_examples/svhn-6/experiment_03")
 
     endo_drop = 0.5
 
-    duration_in_secs = 60*60
+    duration_in_secs = 20*60
     #duration_in_secs = 60
-    L_exo_drop = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
-
-    #duration_in_secs = 5*60
-    #L_exo_drop = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
+    #L_exo_drop = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
+    L_exo_drop = np.linspace(0.0, 0.9, 20)
 
     L_jobid_offset = 10 * np.arange(0, len(L_exo_drop))
 
@@ -152,6 +150,6 @@ if __name__ == "__main__":
 
 """
 
-/home/dpln/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/voltmeleon/voltmeleon/config_examples/svhn-6/experiment_02/server_params_desc.json --port=7002
+/home/dpln/NIPS/distdrop/bin/server --model_params_desc=${HOME}/NIPS/voltmeleon/voltmeleon/config_examples/svhn-6/experiment_03/server_params_desc.json --port=7003
 
 """

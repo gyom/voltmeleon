@@ -44,8 +44,48 @@ class StopAfterTimeElapsed(SimpleExtension):
             pass
         else:
             # a bit abrupt, but it should work fine
-            print "Exiting because self.total_duration seconds have elapsed."
+            print "Exiting because self.total_duration = %d seconds have elapsed." % self.total_duration
             exit()
+
+
+
+class ConstantExtraInfoLogger(SimpleExtension):
+    def __init__(self, cg, **kwargs):
+        super(ConstantExtraInfoLogger, self).__init__(**kwargs)
+
+        def compute_model_size(cg):
+            total_nbr_elements = 0
+            for v in VariableFilter(roles=[BIAS])(cg.variables) + VariableFilter(roles=[WEIGHT])(cg.variables):
+                i = 1
+                for d in v.get_value().shape:
+                    i *= d
+                total_nbr_elements += i
+
+            # * 4 for float32
+            return total_nbr_elements * 4
+
+        self.total_params_size = compute_model_size(cg)
+
+        if os.environ.has_key('VOLTMELEON_MODEL_DESC_EXO_DROP'):
+            self.exo_dropout_rate = os.environ['VOLTMELEON_MODEL_DESC_EXO_DROP']
+        else:
+            self.exo_dropout_rate = np.nan
+
+        if os.environ.has_key('VOLTMELEON_MODEL_DESC_ENDO_DROP'):
+            self.endo_dropout_rate = os.environ['VOLTMELEON_MODEL_DESC_ENDO_DROP']
+        else:
+            self.endo_dropout_rate = np.nan
+
+    def do(self, which_callback, *args):
+        current_row = self.main_loop.log.current_row
+        current_row['total_params_size'] = self.total_params_size
+        current_row['exo_dropout_rate'] = self.exo_dropout_rate
+        current_row['endo_dropout_rate'] = self.endo_dropout_rate
+
+
+
+
+
 
 
 def build_training(cg, error_rate, cost, step_rule,
@@ -124,6 +164,7 @@ def build_training(cg, error_rate, cost, step_rule,
                     [FinishAfter(after_n_epochs=nbr_epochs),
                      Timing(every_n_batches=monitor_interval_nbr_batches),
                      Timestamp(every_n_batches=monitor_interval_nbr_batches),
+                     ConstantExtraInfoLogger(every_n_batches=monitor_interval_nbr_batches),
                      Printing(every_n_batches=monitor_interval_nbr_batches)] )
 
     if force_quit_after_total_duration is not None:

@@ -288,6 +288,7 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
         server_sync_extension_auto_timing = None
         print "WARNING : No client. Setting the sync extensions to be None."
 
+    print "Asked to run for force_quit_after_total_duration = %d seconds." % force_quit_after_total_duration
 
     main_loop = build_training.build_training(cg, error_rate, cost, step_rule,
                                               weight_decay_factor=train_desc['weight_decay_factor'],

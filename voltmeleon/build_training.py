@@ -164,7 +164,7 @@ def build_training(cg, error_rate, cost, step_rule,
                     [FinishAfter(after_n_epochs=nbr_epochs),
                      Timing(every_n_batches=monitor_interval_nbr_batches),
                      Timestamp(every_n_batches=monitor_interval_nbr_batches),
-                     ConstantExtraInfoLogger(every_n_batches=monitor_interval_nbr_batches),
+                     ConstantExtraInfoLogger(every_n_batches=monitor_interval_nbr_batches, cg),
                      Printing(every_n_batches=monitor_interval_nbr_batches)] )
 
     if force_quit_after_total_duration is not None:

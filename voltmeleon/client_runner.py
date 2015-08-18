@@ -57,18 +57,30 @@ def build_model_with_endo_adjustments(model_desc, server_params_desc=None, want_
 
     (cg, error_rate, cost, D_params, D_kind) = build_model.build_submodel(**model_desc)
 
+    #import pdb; pdb.set_trace()
+
     D_rescale_factor_exo_dropout = {}
-    for name, param_full in server_params_desc.items():
+    for param_desc_full in server_params_desc:
+        name = str(param_desc_full['name'])
+
+        if not D_params.has_key(name):
+            # Sometimes the parameter just isn't here yet.
+            # For example, in the case of "decay" versions of
+            # parameters, to be used with momentum, they are found
+            # in the `server_params_desc` but they are not yet
+            # instantiated in our model.
+            continue
+
         param = D_params[name]
         
         if D_kind[name] == "FULLY_CONNECTED_WEIGHTS":
             # the input dimension is the 0
-            s = 1.0 * param_full.shape[0] / param.get_value().shape[0]
+            s = 1.0 * param_desc_full['shape'][0] / param.get_value().shape[0]
             D_rescale_factor_exo_dropout[name] = s
             print "Rescaling parameter %s by %f when read from server, to compensate for exo dropout." % (name, s)
         elif D_kind[name] == "CONV_FILTER_WEIGHTS":
             # the input dimension is the 1
-            s = 1.0 * param_full.shape[1] / param.get_value().shape[1]
+            s = 1.0 * param_desc_full['shape'][1] / param.get_value().shape[1]
             D_rescale_factor_exo_dropout[name] = s
             print "Rescaling parameter %s by %f when read from server, to compensate for exo dropout." % (name, s)
         else:
@@ -152,7 +164,29 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
     print "======================"
     for (name, param_var) in sorted(D_params.items(), key=lambda e:e[0]):
         print "    %s has shape %s" % (name, param_var.get_value(borrow=True, return_internal_type=True).shape)
+    print "======================"
     print ""
+
+    # We need to add the corresponding entries in `D_rescale_factor_exo_dropout`
+    # for all those additional variables.
+    for (name, param) in D_params.items():
+
+        if D_rescale_factor_exo_dropout.has_key(name):
+            print "Already a dropout entry for %s." % name
+            continue
+
+        for k in D_rescale_factor_exo_dropout.keys():
+            # check if `k` could be a prefix of `name`
+            if len(k) < len(name) and name[0:len(k)] == k:
+                print "D_rescale_factor_exo_dropout[%s] = D_rescale_factor_exo_dropout[%s]" % (name, k)
+                D_rescale_factor_exo_dropout[name] = D_rescale_factor_exo_dropout[k]
+        
+        if D_rescale_factor_exo_dropout.has_key(name):
+            print "Failed to find the dropout entry for %s." % name
+            continue
+
+
+
 
     if output_server_params_desc_path is not None:
         L_server_params_desc = build_model.get_model_desc_for_server(D_params, D_kind)

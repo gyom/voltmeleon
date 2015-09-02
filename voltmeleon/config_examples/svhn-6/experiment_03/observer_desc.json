@@ -1,6 +1,6 @@
 {
     "batch_size" : 64,
-    "nbr_epochs": 20000000,
+    "nbr_epochs": 20000,
     "monitor_interval_nbr_batches" : 1,
     "weight_decay_factor" : 0.00001,
 
@@ -15,7 +15,7 @@
                  "want_subset_test" : false},
 
     "server" : {"hostname" : "127.0.0.1",
-                "port" : 7002,
+                "port" : 7003,
                 "alpha" : 1.0 },
 
     "sync" : {  "want_read_only" : true,

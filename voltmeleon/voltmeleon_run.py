@@ -36,7 +36,16 @@ def override_special_case_environment_variable(model_desc):
 
 def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=False, running_on_helios=False, jobid=None, force_quit_after_total_duration=None, server_params_desc=None):
 
-    if running_on_helios:
+    if running_on_helios and jobid is not None:
+
+        assert type(jobid) == int
+        want_observer_mode = (jobid == 0)
+        if want_observer_mode:
+            print "We are running on helios in OBSERVER mode."
+        else:
+            print "We are running on helios."
+
+    elif running_on_helios and jobid is None:
         # We have to do something special here because all the jobs
         # are launched with the same command-line, yet we want to run
         # an "observer" with the job zero.
@@ -52,6 +61,7 @@ def run(experiment_dir, output_server_params_desc_path=None, want_observer_mode=
         else:
             print "We are running on helios."
         jobid = helios.get_id()
+
     elif jobid is not None:
         assert type(jobid) == int
     else:

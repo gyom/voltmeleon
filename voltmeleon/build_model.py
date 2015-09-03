@@ -70,7 +70,6 @@ def build_submodel(input_shape,
                    output_dim,
                    L_dim_conv_layers,
                    L_filter_size,
-                   L_filter_step,
                    L_pool_size,
                    L_activation_conv,
                    L_dim_full_layers,
@@ -80,7 +79,9 @@ def build_submodel(input_shape,
                    L_endo_dropout_conv_layers,
                    L_endo_dropout_full_layers,
                    L_border_mode=None,
+                   L_filter_step=None,
                    L_pool_step=None):
+
 
     # TO DO : target size and name of the features
 
@@ -169,20 +170,30 @@ def build_submodel(input_shape,
 
             print "border_mode : %s" % border_mode
 
-            # TODO implement filter_step
+            # filter_step
             # http://blocks.readthedocs.org/en/latest/api/bricks.html#module-blocks.bricks.conv
+
+            kwargs = {}
+            if filter_step is None or filter_step == (1,1):
+                pass
+            else:
+                # there's a bit of a mix of names because `Convolutional` takes
+                # a "step" argument, but `ConvolutionActivation` takes "conv_step" argument
+                kwargs['conv_step'] = filter_step
 
             if (pool_size[0] == 0 and pool_size[1] == 0):
                 layer_conv = ConvolutionalActivation(activation=activation,
                                                 filter_size=filter_size,
                                                 num_filters=num_filters,
                                                 border_mode=border_mode,
-                                                name="layer_%d" % index)
+                                                name="layer_%d" % index,
+                                                **kwargs)
             else:
                 if pool_step is None:
-                    kwargs = {}
+                    pass
                 else:
-                    kwargs = {'pooling_step':tuple(pool_step)}
+                    kwargs['pooling_step'] = tuple(pool_step)
+
                 layer_conv = ConvolutionalLayer(activation=activation,
                                                 filter_size=filter_size,
                                                 num_filters=num_filters,

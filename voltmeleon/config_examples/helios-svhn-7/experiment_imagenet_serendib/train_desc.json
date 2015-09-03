@@ -1,7 +1,7 @@
 {
-    "batch_size" : 4,
+    "batch_size" : 256,
     "nbr_epochs": 200000,
-    "monitor_interval_nbr_batches" : 10,
+    "monitor_interval_nbr_batches" : 1,
     "weight_decay_factor" : 0.00001,
 
     "step_flavor" : {"method" : "rmsprop",
@@ -9,17 +9,18 @@
                      "decay_rate" : 0.99},
 
     "dataset" : {"hdf5_file" : "/home/dpln/data/ImageNet_ILSVRC2010/ilsvrc2010_old.hdf5",
-                 "want_eval_on_valid" : true,
+                 "want_eval_on_valid" : false,
                  "want_subset_valid" : false,
                  "want_eval_on_test" : false,
                  "want_subset_test" : false},
 
     "server" : {"hostname" : "127.0.0.1",
-		        "port" : 7000,
-		        "alpha" : 0.5 },
+		"port" : 7000,
+		"alpha" : 0.5 },
 
     "sync" : {  "want_read_only" : false,
-	            "max_time_ratio_spent" : 0.1,
-	            "want_undo_exo_dropout" : false,
-                "want_ignore_endo_dropout" : false}
+	        "max_time_ratio_spent" : 1.0,
+	        "want_undo_exo_dropout" : false,
+                "want_ignore_endo_dropout" : false,
+                "want_sync_timing_log" : true}
 }

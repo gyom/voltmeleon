@@ -73,7 +73,9 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
     def __init__(self, client, D_dropout_probs, D_params,
         want_read_only=False, max_time_ratio_spent=0.25,
         D_rescale_factor_exo_dropout = {},
-        verbose=False, **kwargs):
+        verbose=False,
+        want_sync_timing_log=False,
+        **kwargs):
         # `D_params` contains both the parameters and the momentums
         super(ServerSyncAutoAdjustTiming, self).__init__(**kwargs)
 
@@ -105,7 +107,7 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
         # don't write back anything to the server.
         self.D_rescale_factor_exo_dropout = D_rescale_factor_exo_dropout
 
-
+        self.want_sync_timing_log = want_sync_timing_log
 
         ### Private members that are not arguments ###
 
@@ -206,7 +208,13 @@ class ServerSyncAutoAdjustTiming(SimpleExtension):
                 if self.rolling_estimate_sync_cost is not None:
                     self.rolling_estimate_sync_cost = s * self.rolling_estimate_sync_cost + (1-s) * (toc-tic)
                 else:
-                    self.rolling_estimate_sync_cost = (toc-tic)
+                    self.rolling_estimate_sync_cost = toc-tic
+
+                # Not quite as flexible as the legion functionality,
+                # but we don't have access to the main_loop here,
+                # so we can't log things to it.
+                if self.want_sync_timing_log:
+                    print "Sync took %f seconds." % (toc-tic,)
 
                 # One alternative is to use
                 #    self.timestamp_previous_update = time.time()

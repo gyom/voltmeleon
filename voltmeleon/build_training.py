@@ -162,10 +162,10 @@ def build_training(cg, error_rate, cost, step_rule,
     extensions = (  [monitor_train] +
                     [e for e in (monitor_valid, monitor_test) if e is not None] +
                     [FinishAfter(after_n_epochs=nbr_epochs),
-                     Timing(every_n_batches=monitor_interval_nbr_batches),
-                     Timestamp(every_n_batches=monitor_interval_nbr_batches),
+                     Timing(every_n_batches=1),
+                     Timestamp(every_n_batches=1),
                      ConstantExtraInfoLogger(cg, every_n_batches=monitor_interval_nbr_batches),
-                     Printing(every_n_batches=monitor_interval_nbr_batches)] )
+                     Printing(every_n_batches=1)] )
 
     if force_quit_after_total_duration is not None:
         extensions.append(StopAfterTimeElapsed(every_n_batches=1, total_duration=force_quit_after_total_duration))

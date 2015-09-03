@@ -249,7 +249,8 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
     for key in sync_desc:
         assert key in [ 'want_read_only',
                         'max_time_ratio_spent',
-                        'momentum_weights_scaling'], "Unrecognized key : %s" % key
+                        'momentum_weights_scaling',
+                        'want_sync_timing_log'], "Unrecognized key : %s" % key
 
     if sync_desc.has_key('r'):
         print "The 'r' value in the 'sync' dictionary is now called 'max_time_ratio_spent'."

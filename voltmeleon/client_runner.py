@@ -190,7 +190,7 @@ def run(model_desc, train_desc, experiment_dir, saving_path, output_server_param
 
     if output_server_params_desc_path is not None:
         L_server_params_desc = build_model.get_model_desc_for_server(D_params, D_kind)
-        json.dump(L_server_params_desc, open(output_server_params_desc_path, "w"))
+        json.dump(L_server_params_desc, open(output_server_params_desc_path, "w"), indent=4, separators=(',', ': '))
         print "Wrote the json file for the server parameter description in %s. Now exiting." % output_server_params_desc_path
         return
 

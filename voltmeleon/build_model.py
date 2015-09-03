@@ -70,6 +70,7 @@ def build_submodel(input_shape,
                    output_dim,
                    L_dim_conv_layers,
                    L_filter_size,
+                   L_filter_step,
                    L_pool_size,
                    L_activation_conv,
                    L_dim_full_layers,
@@ -99,6 +100,8 @@ def build_submodel(input_shape,
     output_dim = num_channels*np.prod(image_size)
     conv_layers = []
     assert len(L_dim_conv_layers) == len(L_filter_size)
+    if L_filter_step is None:
+        L_filter_step = [None] * len(L_dim_conv_layers)
     assert len(L_dim_conv_layers) == len(L_pool_size)
     if L_pool_step is None:
         L_pool_step = [None] * len(L_dim_conv_layers)
@@ -123,10 +126,11 @@ def build_submodel(input_shape,
     L_exo_dropout_conv_layers = L_exo_dropout_conv_layers[1:] + [L_exo_dropout_full_layers[0]]
 
     if len(L_dim_conv_layers):
-        for (num_filters, filter_size,
+        for (num_filters, filter_size, filter_step,
             pool_size, pool_step, activation_str, border_mode,
             dropout, index) in zip(L_dim_conv_layers,
                                   L_filter_size,
+                                  L_filter_step,
                                   L_pool_size,
                                   L_pool_step,
                                   L_activation_conv,
@@ -137,6 +141,11 @@ def build_submodel(input_shape,
 
             # convert filter_size and pool_size in tuple
             filter_size = tuple(filter_size)
+
+            if filter_step is None:
+                filter_step = (1, 1)
+            else:
+                filter_step = tuple(filter_step)
 
             if pool_size is None:
                 pool_size = (0,0)
@@ -159,6 +168,9 @@ def build_submodel(input_shape,
             num_filters = num_filters - int(num_filters*dropout)
 
             print "border_mode : %s" % border_mode
+
+            # TODO implement filter_step
+            # http://blocks.readthedocs.org/en/latest/api/bricks.html#module-blocks.bricks.conv
 
             if (pool_size[0] == 0 and pool_size[1] == 0):
                 layer_conv = ConvolutionalActivation(activation=activation,

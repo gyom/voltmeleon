@@ -24,8 +24,8 @@ export VOLTMELEON_MODEL_DESC_EXO_DROP=0.0
 export VOLTMELEON_MODEL_DESC_ENDO_DROP=0.5
 
 export EXPERIMENT_DIR=${HOME}/NIPS/voltmeleon_experiments/experiments-svhn-7/${EXPID}
-mkdir ${HOME}/NIPS/voltmeleon_experiments/experiments-svhn-7
-mkdir $EXPERIMENT_DIR
+#mkdir ${HOME}/NIPS/voltmeleon_experiments/experiments-svhn-7
+#mkdir ${HOME}/NIPS/voltmeleon_experiments/experiments-svhn-7/${EXPERIMENT_DIR}
 # Assuming that we've previously performed a
 # git clone https://github.com/gyom/voltmeleon.git ${EXPERIMENT_DIR}/voltmeleon
 # into that directory in preparation.

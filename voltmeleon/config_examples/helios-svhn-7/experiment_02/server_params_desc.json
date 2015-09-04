@@ -1,0 +1,322 @@
+[
+    {
+        "shape": [
+            1,
+            4096,
+            1,
+            1
+        ],
+        "kind": "FULLY_CONNECTED_BIASES",
+        "name": "layer_5_b_decay"
+    },
+    {
+        "shape": [
+            512,
+            512,
+            2,
+            2
+        ],
+        "kind": "CONV_FILTER_WEIGHTS",
+        "name": "layer_3_W_decay"
+    },
+    {
+        "shape": [
+            4608,
+            4096,
+            1,
+            1
+        ],
+        "kind": "FULLY_CONNECTED_WEIGHTS",
+        "name": "layer_5_W"
+    },
+    {
+        "shape": [
+            512,
+            512,
+            2,
+            2
+        ],
+        "kind": "CONV_FILTER_WEIGHTS",
+        "name": "layer_2_W_decay"
+    },
+    {
+        "shape": [
+            512,
+            512,
+            2,
+            2
+        ],
+        "kind": "CONV_FILTER_WEIGHTS",
+        "name": "layer_2_W"
+    },
+    {
+        "shape": [
+            1,
+            4096,
+            1,
+            1
+        ],
+        "kind": "FULLY_CONNECTED_BIASES",
+        "name": "layer_6_b_decay"
+    },
+    {
+        "shape": [
+            512,
+            512,
+            2,
+            2
+        ],
+        "kind": "CONV_FILTER_WEIGHTS",
+        "name": "layer_3_W"
+    },
+    {
+        "shape": [
+            512,
+            1,
+            28,
+            28
+        ],
+        "kind": "CONV_FILTER_BIASES",
+        "name": "layer_1_b_decay"
+    },
+    {
+        "shape": [
+            512,
+            1,
+            6,
+            6
+        ],
+        "kind": "CONV_FILTER_BIASES",
+        "name": "layer_3_b"
+    },
+    {
+        "shape": [
+            512,
+            512,
+            4,
+            4
+        ],
+        "kind": "CONV_FILTER_WEIGHTS",
+        "name": "layer_1_W_decay"
+    },
+    {
+        "shape": [
+            512,
+            3,
+            8,
+            8
+        ],
+        "kind": "CONV_FILTER_WEIGHTS",
+        "name": "layer_0_W_decay"
+    },
+    {
+        "shape": [
+            1,
+            4096,
+            1,
+            1
+        ],
+        "kind": "FULLY_CONNECTED_BIASES",
+        "name": "layer_5_b"
+    },
+    {
+        "shape": [
+            1,
+            4096,
+            1,
+            1
+        ],
+        "kind": "FULLY_CONNECTED_BIASES",
+        "name": "layer_6_b"
+    },
+    {
+        "shape": [
+            4096,
+            1000,
+            1,
+            1
+        ],
+        "kind": "FULLY_CONNECTED_WEIGHTS",
+        "name": "layer_7_W_decay"
+    },
+    {
+        "shape": [
+            512,
+            1,
+            13,
+            13
+        ],
+        "kind": "CONV_FILTER_BIASES",
+        "name": "layer_2_b"
+    },
+    {
+        "shape": [
+            4608,
+            4096,
+            1,
+            1
+        ],
+        "kind": "FULLY_CONNECTED_WEIGHTS",
+        "name": "layer_5_W_decay"
+    },
+    {
+        "shape": [
+            1,
+            1000,
+            1,
+            1
+        ],
+        "kind": "FULLY_CONNECTED_BIASES",
+        "name": "layer_7_b_decay"
+    },
+    {
+        "shape": [
+            512,
+            1,
+            63,
+            63
+        ],
+        "kind": "CONV_FILTER_BIASES",
+        "name": "layer_0_b_decay"
+    },
+    {
+        "shape": [
+            4096,
+            4096,
+            1,
+            1
+        ],
+        "kind": "FULLY_CONNECTED_WEIGHTS",
+        "name": "layer_6_W_decay"
+    },
+    {
+        "shape": [
+            1,
+            1000,
+            1,
+            1
+        ],
+        "kind": "FULLY_CONNECTED_BIASES",
+        "name": "layer_7_b"
+    },
+    {
+        "shape": [
+            512,
+            1,
+            4,
+            4
+        ],
+        "kind": "CONV_FILTER_BIASES",
+        "name": "layer_4_b"
+    },
+    {
+        "shape": [
+            512,
+            1,
+            4,
+            4
+        ],
+        "kind": "CONV_FILTER_BIASES",
+        "name": "layer_4_b_decay"
+    },
+    {
+        "shape": [
+            512,
+            1,
+            63,
+            63
+        ],
+        "kind": "CONV_FILTER_BIASES",
+        "name": "layer_0_b"
+    },
+    {
+        "shape": [
+            512,
+            1,
+            28,
+            28
+        ],
+        "kind": "CONV_FILTER_BIASES",
+        "name": "layer_1_b"
+    },
+    {
+        "shape": [
+            512,
+            1,
+            6,
+            6
+        ],
+        "kind": "CONV_FILTER_BIASES",
+        "name": "layer_3_b_decay"
+    },
+    {
+        "shape": [
+            512,
+            3,
+            8,
+            8
+        ],
+        "kind": "CONV_FILTER_WEIGHTS",
+        "name": "layer_0_W"
+    },
+    {
+        "shape": [
+            512,
+            512,
+            4,
+            4
+        ],
+        "kind": "CONV_FILTER_WEIGHTS",
+        "name": "layer_1_W"
+    },
+    {
+        "shape": [
+            4096,
+            4096,
+            1,
+            1
+        ],
+        "kind": "FULLY_CONNECTED_WEIGHTS",
+        "name": "layer_6_W"
+    },
+    {
+        "shape": [
+            4096,
+            1000,
+            1,
+            1
+        ],
+        "kind": "FULLY_CONNECTED_WEIGHTS",
+        "name": "layer_7_W"
+    },
+    {
+        "shape": [
+            512,
+            512,
+            2,
+            2
+        ],
+        "kind": "CONV_FILTER_WEIGHTS",
+        "name": "layer_4_W_decay"
+    },
+    {
+        "shape": [
+            512,
+            512,
+            2,
+            2
+        ],
+        "kind": "CONV_FILTER_WEIGHTS",
+        "name": "layer_4_W"
+    },
+    {
+        "shape": [
+            512,
+            1,
+            13,
+            13
+        ],
+        "kind": "CONV_FILTER_BIASES",
+        "name": "layer_2_b_decay"
+    }
+]

@@ -1,0 +1,26 @@
+{
+    "batch_size" : 64,
+    "nbr_epochs": 200000,
+    "monitor_interval_nbr_batches" : 1,
+    "weight_decay_factor" : 0.00001,
+
+    "step_flavor" : {"method" : "rmsprop",
+                     "learning_rate" : 0.001,
+                     "decay_rate" : 0.9},
+
+    "dataset" : {"hdf5_file" : "/home/alaingui/data/ImageNet_ILSVRC2010/ilsvrc2010_old.hdf5",
+                 "want_eval_on_valid" : false,
+                 "want_subset_valid" : false,
+                 "want_eval_on_test" : false,
+                 "want_subset_test" : false},
+
+    "server" : {"hostname" : "10.12.1.3",
+		"port" : 7501,
+		"alpha" : 0.5 },
+
+    "sync" : {  "want_read_only" : false,
+	        "max_time_ratio_spent" : 1.0,
+	        "want_undo_exo_dropout" : false,
+                "want_ignore_endo_dropout" : false,
+                "want_sync_timing_log" : true}
+}

@@ -6,7 +6,7 @@
 
     "step_flavor" : {"method" : "rmsprop",
                      "learning_rate" : 0.001,
-                     "decay_rate" : 0.99},
+                     "decay_rate" : 0.9},
 
     "dataset" : {"hdf5_file" : "/home/dpln/data/ImageNet_ILSVRC2010/ilsvrc2010_old.hdf5",
                  "want_eval_on_valid" : false,
